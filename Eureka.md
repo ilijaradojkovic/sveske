@@ -58,3 +58,46 @@ Dovoljno je da imamo samo dependency za eureka client i da se eureka server run 
 I idemo @EnableEurekaClient 
 
 eureka.client.serviceUrl.defaultZone=http://localhost:9999/eureka/ ako ne nadje odmah eura server moramo definisati putanju do njega
+
+
+
+@FeignClient nam omogucava da ovaj interface poziva druge endpointe samo treba da ga autowire
+
+```
+@Component
+@FeignClient(name = "otherClient",url = "http://localhost:8081")
+public interface ExternalController {
+
+    @GetMapping("/test")
+    String getUsers();
+
+}
+```
+
+On je po deafultu blocking a mozmeo da ga konfigurisemo da ne bude blocking
+
+```
+@FeignClient(name = "example", url = "http://example.com", configuration = ExampleConfiguration.class)
+public interface ExampleClient {
+    @GetMapping("/")
+    Mono<String> get();
+}
+
+@Configuration
+public class ExampleConfiguration {
+    @Bean
+    public WebClient webClient() {
+        return WebClient.builder()
+            .baseUrl("http://example.com")
+            .clientConnector(new ReactorClientHttpConnector(HttpClient.create().wiretap(true)))
+            .build();
+    }
+
+    @Bean
+    public Client feignClient(WebClient webClient) {
+        return new ReactorClientHttpConnectorAdapter(new ReactorClientHttpConnector(HttpClient.create().wiretap(true)));
+    }
+}
+```
+
+Ovo radi load balacing na eurka serveru
