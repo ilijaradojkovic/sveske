@@ -61,6 +61,34 @@ eureka.client.serviceUrl.defaultZone=http://localhost:9999/eureka/ ako ne nadje 
 
 
 
+## Feign Client
+
+- <span style="color:red">@FeignClient</span>
+- <span style="color:red">@EnableFeignClients</span>
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+```
+
+i naravno jer je cloud dependency moramo:
+
+```xml
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>2022.0.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+```
+
 @FeignClient nam omogucava da ovaj interface poziva druge endpointe samo treba da ga autowire
 
 ```
@@ -73,6 +101,8 @@ public interface ExternalController {
 
 }
 ```
+
+i posle ovoga moramo da dodamo @EnableFeignClients
 
 On je po deafultu blocking a mozmeo da ga konfigurisemo da ne bude blocking
 
@@ -101,3 +131,21 @@ public class ExampleConfiguration {
 ```
 
 Ovo radi load balacing na eurka serveru
+
+ILI 
+
+jer radimo sa webclient-om mozemo ovako
+
+```
+ @Bean
+    @LoadBalanced
+    WebClient.Builder builder() {
+        return WebClient.builder();
+    }
+    
+    @Bean
+    WebClient webClient(WebClient.Builder builder) {
+        return builder.build();
+    }
+```
+
