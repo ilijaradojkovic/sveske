@@ -277,5 +277,252 @@ Izbacuje maxelemente n puta
 
 
 
+## Spring
+
+Kako bi radili Redis moramo da imamo server koji se ranuje,to cemo sve da dokerizujemo.
+
+Ako hocemo da imamo lep UI za radis koristimo `Another Desktop Redis Manager`
+
+Kljucni pojmovi:
+
+-  <span style=color:#DC4C4C>RedisConnection</span> ->ovo je core building block za komunikaciju sa Redis serverom 
+- <span style=color:#DC4C4C>RedisConnectionFactory</span> ->ovo je fabrika koja stvara RedisConnection
+- 
+
+Zavisi kako konfigurisemo u spring-u on ce da vraca ili svaki put novu konekciju ili ce da koristi postojace preko connection pool-a
+
+### Sync
+
+Postoje 2 tipa driver-a koje mozemo da koristimo da se povezemo sa radis serverom
+
+<span style=color:#DC4C4C>Lettuce</span>
+
+```xml
+<dependency>
+  <groupId>io.lettuce</groupId>
+  <artifactId>lettuce-core</artifactId>
+  <version>6.1.1.RELEASE</version>
+</dependency>
+```
+
+<span style=color:#DC4C4C>Jedis</span>
+
+```xml
+<dependency>
+  <groupId>redis.clients</groupId>
+  <artifactId>jedis</artifactId>
+  <version>3.7.0</version>
+</dependency>
+```
+
+Podklase `RedisConnectionFactory` su:
+
+1. <span style=color:#DC4C4C>LettuceConnectionFactory </span>-> <span style=color:#DC4C4C>LettuceConnection</span>
+2. <span style=color:#DC4C4C>JedisConnectionFactory</span>-> <span style=color:#DC4C4C>JedisConnection</span>
+
+Da bi radili sa redisom moramo da dodamo dependency
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+```
+
+####  Raw
+
+Sami cemo da definisemo bean-ove za `RedisTemplate<K,V>`
+
+Fora je sto ovde nemamo yml kada hocemo sami i moramo da definisemo core komopnentu za redis,a to je RedisConnectionFactory 
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+```
+
+```
+@Bean
+public FactoryTypeKojKoristimo getFactory(){
+	RedisStandaloneConfiguration config=new RedisStandaloneConfiguration(host,port...);
+	config.setPort(...);
+	config.setHost(...);
+	config.setDatabase(...);
+	config.setPassword(...);
+	//create connection pool,sve zavisi koj je driver 
+	LettuceClientConfiguration poolConfig=LettuceClientConfiguration.Buidler()...
+	poolConfig.nesto...
+	return new FactoryTypeKojKoristimo(config,poolConfig);
+}
+```
+
+Mi moramo da defisnisemo `RedisTemplate<K,V>` da bi mogli da radimo redis operacije.
+
+```java
+@Bean
+public RedisTemplate<String,Object> getTemplate(){
+	RedisTemplate<String,Object> template=new RedisTemplate();
+	template.setKeySerializer(...)
+			.setHashKeySerializer(...)
+			.setValueSerializer(...)
+			.setHashValueSerializer(...)
+			.setEnableTransactionSupport(true)
+			.setConnectionFactory(nasa)
+}
+```
 
 
+
+Ove serializer-e mi ne pravimo,mozemo,ali ima vec gotovi:
+
+- GenericJackson2JsonRedisSerializer
+- GenericToStringSerializer
+- Jackson2JsonRedisSerializer
+- JdkSerializationRedisSerializer
+
+#### Yml
+
+```yml
+spring:
+	redis:
+		database: ...
+		port: ...
+		host: ...
+		password: ...
+		timeout: ...
+		factoryType: -> lettuce / jedis
+			pool:
+				enabled: ...
+				max-active: ...
+				max_idle: ...
+				min_idle: ...
+```
+
+Kada imamo ovo mozemo da autowire direktno `RedisTempate` ali ne moramo jer hocemo da radimo sa repositories
+
+Kao sa ostalim stvarimo ovde entiteti imaju anotacije :
+
+- <span style=color:#DC4C4C>@RedisHash(name,ttl)</span> -> ovo ide na nivo klase,kao @Table je samo u redisu
+- <span style=color:#DC4C4C>@Id</span>
+- <span style=color:#DC4C4C>@Indexed</span>
+- <span style=color:#DC4C4C>@TimeToLive(milis)</span> -> stavljamo na nivo klase
+- <span style=color:#DC4C4C>@Reference</span> -> stavljamo na referencu neku
+- <span style=color:#DC4C4C>@GeoIndex</span> -> ovo je geo,moze se staviti samo na Point,Circle...
+- 
+
+Bitna stvar je da klasa implementira `Serializable`
+
+```java
+@RedisHash("users")
+public class User implements Serializable {
+  @Id
+  private String id;
+  
+  @Reference
+  private List<Profile> profiles;
+  // ...
+}
+
+@RedisHash("profiles")
+public class Profile {
+  @Id
+  private String id;
+  // ...
+}
+```
+
+### Transactions
+
+Redis nam omogucava transakcije
+
+To mozmeo da radimo 
+
+1. @Transactional
+2. Koriscenje RedisTemplate
+
+Koriscenjem RedisTemplate imamo veci nivo kontrole
+
+
+
+```java
+redisTemplate.execute(RedisCallback<T>)
+			.multi()
+			.exec()
+			.discard()
+			
+```
+
+npr:
+
+```
+template.execute(new RedisCallback<List<Object>>(){
+	...
+});
+```
+
+### Reactive
+
+Samo koristimo
+
+- <span style=color:#DC4C4C>ReactiveRedisConnectionFactory</span>
+- <span style=color:#DC4C4C>ReactiveRedisTemplate</span>
+
+```java
+@Bean
+public ReactiveRedisConnection getConnection(){
+	return new LettuceConnectionFactory(RedisStandaloneCOnfig);
+}
+```
+
+
+
+Mi kada pravimo objekat i cuvamo ga u Redis ,ako pristupimo tom rekordu u  Redis-u vidimo da on ima key-value(takva je redis baza).
+
+`Value` ce biti ono sto smo sacuvali,a `key` ce biti sama klasa tj ono `class.getName()`
+
+To zelimo da promenimo <span style=color:#DC4C4C>@TypeAlias("name")</span>
+
+Pored toga sto uvek moramo da pisemo RedisTemplate<T,V> mozmeo da pisemo StringRedisTempalte,ObjectRedisTemplate...
+
+Kada radimo geoIndex moramo da radimo samo sa klasama kao sto su 
+
+##### Point
+
+```java
+Point p=new Point(x,y)
+```
+
+##### Circle
+
+```
+Circle c =new Circle(center_x,center_y,radius)
+```
+
+##### Box
+
+```java
+Box b=new Box(Point first,Point second)
+```
+
+##### Distance
+
+```java
+Distance d=new Distance(value,Metric)
+```
+
+##### Metric
+
+Metrics.KILOMETERS
+
+​			MILES
+
+​			.NEUTRAL -> default
+
+##### Polygon
+
+```java
+Polygon p=new Polygon(List<Point>)
+```
+
+##### GeoResult

@@ -101,3 +101,17 @@ npr koristicemo kafku za asinhrono slanje
    ```
 
    
+
+Zipkin po defaultu koristi H2 bazu,mi to mozemo da promenimo u konfiguraciji
+
+Prvo moramo da run mysql server u docker-u i zatim samo namestimo config isve ce da radi
+
+```java
+zipkin.storage.type = mysql
+zipkin.storage.mysql.host = localhost
+zipkin.storage.mysql.port = 3306
+zipkin.storage.mysql.username = zipkin
+zipkin.storage.mysql.password = password
+zipkin.storage.mysql.db = zipkin
+```
+
