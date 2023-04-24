@@ -87,3 +87,45 @@ Service koji hocemo da ne bude expose spolja -> Cluster ip service
 Do sada sto smo uradili stavili smo da ovi budu private tj da nisu expose mikroservisi,samo je gateway expose
 
 Spring cloud gateway prima request od svih 
+
+
+
+## K8s Ingress
+
+Ovo je nesto cime se devops brine,ovo je `traffic controll`
+
+![WhatsApp Image 2023-04-12 at 3.06.36 PM](C:\Users\Ilija\Downloads\WhatsApp Image 2023-04-12 at 3.06.36 PM.jpeg)
+
+Mapira odredjeni ip na servise tj na odredjene podove,mi definisemo pravila rutiranja na ingress.
+
+Onda ovo izbegava stvari da mi pravimo gateway znaci mi mozemo da koristimo gateway ili ingress
+
+Fora je da mi koristimo https samo sa komuinikacijom sa spoljnim svetom,dok unutar mreze mi koristimo http
+
+Zahtev stigne pomocu https-a na gateway ili ingress ,i posle toga ide http
+
+Ingress nam pomaze da ukune taj https i TLS i salje zahteve unutar klastera kao http ,skida taj nepotreban layer
+
+## Service Mesh
+
+Omogucava nam da sigurno komuniciramo izmedju mikroservisa,tj omogucava service-to-service commnunication in a cluster pomocu mutual TLS-a.(preko sertifikata se radi)
+
+Pomaze nam da skupljamo metrike,logs,komunikacijom spoljnog sveta ka nama ,i obrnuto
+
+![WhatsApp Image 2023-04-12 at 3.16.48 PM](C:\Users\Ilija\Downloads\WhatsApp Image 2023-04-12 at 3.16.48 PM.jpeg)
+
+Mi kada pravimo mikroservise ukljucujemo biblioteke koje nam nisu bas vezane za biznis logiku,kao sto je metrics,security,tracing itd i to sve otezava podizanje naseg pojedinacnog mikroservisa,podovi postaju sve veci 
+
+service mash to resava
+
+
+
+![WhatsApp Image 2023-04-12 at 3.18.36 PM](C:\Users\Ilija\Downloads\WhatsApp Image 2023-04-12 at 3.18.36 PM.jpeg)
+
+service mash ce da inject sidecar proxy container koji ima sve to
+
+Istio -> sajt  koji radi service mesh
+
+![WhatsApp Image 2023-04-12 at 3.22.05 PM (1)](C:\Users\Ilija\Downloads\WhatsApp Image 2023-04-12 at 3.22.05 PM (1).jpeg)
+
+Istio ce da inject proxy u sve kada devops tim doda to k8s
