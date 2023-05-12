@@ -1056,3 +1056,29 @@ List<MUser> test = repo.findByName("test");
 System.out.println(test);
 ```
 
+## Entity Listener
+
+Dodamo anotaciju na nas entity objekat 
+
+```
+@EntityListeners(PropertyListener.class)
+```
+
+moramo na vesti koja klasa je taj listener
+
+Bitne su nam ove anotacije @PostPersist,@PostUpdate
+
+```java
+    @PostPersist
+    @PostUpdate
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void afterPersist(final Property property) {
+        log.info("~Property listener: Property saved [ {} ] ", property.getId());
+        //send saved property clientEmail Query service with Kafka
+        replicatePropertyToQueryEventSender.send(
+                propertyMapper.toPropertyReplica(property)
+        );
+        log.info("~Property listener: Send new property [ {} ] clientEmail Query service.", property.getId());
+    }
+```
+

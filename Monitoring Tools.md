@@ -25,10 +25,10 @@ Dodamo dependencies
 Da bi mogli da pisemo nase custom metrict moramo da dodamo spring aop kako bi nam bilo lakse
 
 ```xml
-<dependency>
-	<groupId>org.springfremework.boot</groupId>
-	<artifactId>spring-boot-starter-aop</artifactId>
-</dependency>
+  <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-aop</artifactId>
+    </dependency>
 ```
 
 Ako hocemo da imamo uvid u vreme mi cemo napraviti brean tipa
@@ -62,13 +62,15 @@ global:
 	evaluation_interval: 5s -> evaluira podatke na svakih 5s
 scrape_configs:
   - job_name: 'spring-boot-app' -> application name
-    metrics_path: '/actuator/prometheus'
+    metrics_path: '/actuator/prometheus' -> ovo je path na koji actuator exposes prometheus
     static_configs:
       - targets: ['localhost:8080'] -> kako da pristupi nasoj app,jer on pull data treba mu ip kao i 									port
     
 ```
 
 Ako bi imali vise mikroservica svaki ovaj job_name bi bio ime jednog mikroservisa,jer je ovo fajl koji je na istom nivou kao docker-compose sto je root nivo.
+
+Moramo paziti kako stavaljamo lokaciju ovu u targets,ovo localhost nece da prepozna docekr,ako prometheus instaliramo lokalno brz pomoci dokera radice,ali ako ga pokrenemo pomocu doker-a nece da raid jer docker ne razume ovo localhost.Onda moramo da koristimo nasu ip (idemo u ip config i tu ip nalepimo).Preporuka je da koristimo eureku i da sve mikroservise dokerizujemo
 
 Prometheus cemo objaviti na docker-compose:
 
@@ -84,6 +86,12 @@ prometheus:
 ```
 
 i mozemo da idemo localhost:9090 jer je to prometheus lokacija da vidimo UI
+
+Mi moramo da iskopiramo ovaj prometheus.yml fajl da bi ga prometheus koristio,zato mi koripiramo ovo  u volumes preko ./prometheus.yml:...
+
+fora je da se ovde docker-compose i prometheus.yml nalaze u istom folderu.
+
+
 
 ## Grafana
 

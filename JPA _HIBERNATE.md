@@ -243,11 +243,31 @@ Imena varijabli moraju biti ista
 
  
 
- 
+<span style="color:#FA5F55"> @Version</span>
+
+Kazemo koja je verzija entiteta u bazi,ovo omogucava `optimistic locking` . Kada se perzistentan objekat update polje koje je oznaceno sa **@Version** ce se promeniti jer se entity promenio.Pa kada se taj novi entity update db ce da proveri verziju polja da nema neka transakcija koja ga drzi,time omogucavamo monu sinhronizaciju tj onaj lock .
+
+ On ce da update data samo ako su verzije iste,ako je neko promenio  i broj je drugi,a ta transakcija ima broj 1 dok je u bazi broj 2 onda nece da update
 
  
 
+```
+@Entity
+public class Product {
  
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+ 
+    @Version
+    private Integer version;
+ 
+    private String name;
+    private Double price;
+ 
+    // constructors, getters, setters, etc.
+}
+```
 
  
 

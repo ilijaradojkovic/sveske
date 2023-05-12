@@ -897,3 +897,104 @@ imefunkcije-in-broj-> ovo kaze da ta funkcije prima neki stream(zato je in) sa t
 imefunkcije-out-broj->ovo kaze da ta funkcije salje neki stream(zato je out) na topica destination
 
 a posle u bindings definisemo koji su serializeri i deserializeri za taj stream.
+
+## Avro
+
+Dodamo dependency
+
+```
+    <repositories>
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
+    </repositories>
+           <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-avro-serializer</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+        
+        
+            <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro-maven-plugin</artifactId>
+                <version>1.8.2</version>
+                <executions>
+                    <execution>
+                        <id>schemas</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>schema</goal>
+                            <goal>protocol</goal>
+                            <goal>idl-protocol</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>src/main/resources</sourceDirectory>
+                            <outputDirectory>src/main/java</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+```
+
+
+
+```avro
+{
+  "namespace": "org.example.kafka.model",
+  "type": "record",
+  "name": "OrderCreateModel",
+  "fields": [
+    {
+      "name": "id",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      }
+    },
+    {
+      "name": "orderId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      }
+    },
+    {
+      "name": "price",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 10,
+        "scale": 2
+      }
+    },
+    {
+      "name": "createdAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "product",
+      "type": {
+        "type": "record",
+        "name": "Address",
+        "fields": [
+          {
+            ...
+          }
+        ]
+      }
+    }
+
+
+  ]
+}
+```
+

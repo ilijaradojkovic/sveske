@@ -406,3 +406,69 @@ durationObject.toDays();
 
 ....
 
+### BigDecimal
+
+Ovo je klasa koju bi koristili kada hocemo veliku i dobru preciznost stvari,ona nam omogucava da budemo dosta precizni
+
+```java
+BigDecimal bigDecimal=new BigDecimal(value);
+    				=BigDecimal.valueOf(value);
+```
+
+Operacije nad ovom klasom nisu bas samo + i - vec ima posebne metode za to
+
+```java
+bigDecimal.add(new BigDecimal(2));
+bigDecimal.subtract(new BigDecimal(2));
+bigDecimal.multiply(new BigDecimal(2));
+bigDecimal.divide(new BigDecimal(3));
+```
+
+Svaka metoda prima BigDecimal
+
+Fora je sa divide,ako ne bude tacan `round` broj onda ce da baci exception,tako da moramo da doramo opciju zaokruzivanja te operacije
+
+```java
+BigDecimal quotient = num1.divide(num2, 2, RoundingMode.HALF_UP);
+```
+
+jer ova metoda divide radi kao da hoce da uzme ceo broj,a ima i metoda koja radi deljenje ovog objekta sa ostatom to je metoda:
+
+```
+bigDecimal.divideAndRemainder()
+```
+
+Kako bi ih poredili koristimo 
+
+```java
+
+bigDecimal.compareTo(bigDecimal)
+```
+
+Ova metoda vraca 1 -1 ili 0 u zavisnosti od rezultata
+
+
+
+```
+bigDecimal.negate() -> vrati negativnu vrednost
+bigDecimal.abs() -> apsolutna vrednost
+bigDecimal.toInteger()
+		.tonesto  -> mozemo da konvertujemo u primitivne tipove
+```
+
+Mozemo globalno namestiti preciznost bigDecimal objekta pomocu metode:
+
+```java
+bigDecimalObject.setScale(int scale,RoundingMode roundingMode)
+```
+
+
+
+### Using Fractional Numbers in Java
+
+Ovo je poglavnje za koriscenje decimalnih brojeva u Javi u situacijama kada su brojevi 0.33333333333... to su na primer
+
+1/3,1/6 itd
+
+Kako Java cuva ove brojeve?
+
