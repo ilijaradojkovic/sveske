@@ -581,7 +581,7 @@ resilience4j:
 ```
 
 ```xml
-</dependency>
+ </dependency>
 <dependency>
     <groupId>io.github.resilience4j</groupId>
     <artifactId>resilience4j-circuitbreaker</artifactId>
@@ -601,5 +601,15 @@ i ovo ce biti novi default filter
   args:
     name: nameCirc
     fallbackUri: http://localhost:8080/defaultFallback
+```
+
+On po defaultu koristi `Load Balancer` i to **Round Robin** da bi namestili koji tip algoritma poristi mozemo:
+
+```yml
+ spring:
+   loadbalancer:
+      ribbon:
+        enabled: true
+        NFLoadBalancerRuleClassName: com.netflix.loadbalancer.WeightedResponseTimeRule
 ```
 
