@@ -624,3 +624,21 @@ Napravimo dodatan service ili job koji ih vadi i radi sa njima.
 Ovu tabelu stavljamo u onu bazu gde se inicijalizuje sama saga,jer tu ako baza i padne nece ni otpoceti saga tako da je ok 
 
 Ovaj patern koristimo kada `2Phase commit` nije opcija
+
+## CQRS
+
+Command query separtaion segregation -> ovo odvaja deo za write i deo za read![1_RiWr-7_SdVIOSFzp9HneOQ](C:\Users\radoj\Desktop\1_RiWr-7_SdVIOSFzp9HneOQ.png)
+
+Read deo ce se apdejtovati asinhrono preko event-a,bice mali delay ali ce sistem biti bas scalable
+
+To je ovo sync
+
+Obicno kada se event kreira da se push na kanal on se cuva u `Event Store` npr:
+
+Customer se kreira i kreiramo CustomerCreatedEvent i taj event ce se cuvati u Event Store.
+
+Taj event saljemo na kafku i onda ce Query Service da procita i update ce svoje podatke za read
+
+ Kako smo evente cuvali u Event Store mi mozemo da ih replay vise puta i da radimo neku statistiku nad njima
+
+CQRS ne znaci da se pravi novi microservice vec moze da se integrise u 2 postojeca,jedan je za taj command npr Customer Microservice,a drugi koji mu treba samo citanje je Order Microservice koji dobija evente od ovog da bi napravio KOPIJU tabele i update je kada je potrebno
