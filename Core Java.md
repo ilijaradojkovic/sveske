@@ -1,5 +1,206 @@
 # Core Java
 
+## JAR
+
+jar -> java archive
+
+Ovo je fajl koji predstavlja executable jedinicu,to je sav nas kompajliran kod.Ovo cemo koristiti da bi run  nasu aplikaciju negde drugde,ovo je resultat build-a
+
+JVM ce ovo izvrsiti,tako da gde god imamo JVM ovo cemo moci da izvrsimo
+
+Mi mozemo da izvrsimo jar fajl pomocu cmd-a 
+
+```
+java -jar filename.jar
+```
+
+Java jar fajl sadrzi:
+
+1. Java class files 
+2. Resources
+3. Manifest file ->metadata
+4. Extensions ->dependencies
+
+Mi mozemo da vidimo sta se sve nalazi u jar fajlu :
+
+```
+jar tf filename.jar
+```
+
+### Kako ce nasa aplikacija da napravi jar fajl?
+
+Ovo raidmo pomocu maven plugin-a,naravno postoje i druge opcije
+
+Mi kada kreiramo maven projekat,moramo dodati i neke plugin-ove za maven kako bi on napravio jar 
+
+1. `maven-complier-plugin` : Ovaj plugin je zaduzen da kompajlira Java source code u Java bytecode.Mi mozemo da konfigurisemo Java verziju,source directory za output jar
+
+   ```xml
+   <plugin>
+           <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-compiler-plugin</artifactId>
+           <version>3.8.1</version>
+           <configuration>
+             <source>1.8</source>
+             <target>1.8</target>
+           </configuration>
+         </plugin>
+   ```
+
+   
+
+2. `spring-boot-maven-plugin` : Ovaj plugin nam omogucava nekoliko korisnih funkcija za build i run Spring Boot aplikacija.
+
+   ```xml
+   <plugin>
+           <groupId>org.springframework.boot</groupId>
+           <artifactId>spring-boot-maven-plugin</artifactId>
+           <version>2.6.2</version>
+           <executions>
+             <execution>
+               <goals>
+                 <goal>repackage</goal>
+               </goals>
+             </execution>
+           </executions>
+         </plugin>
+   ```
+
+   
+
+3. `maven-resources-plugin` : Ovaj plugin kopira resource fajlove,kao sto su files,XML files , i ostale.Kopira iz nase source directory u target directory
+
+   ```xml
+    <plugin>
+           <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-resources-plugin</artifactId>
+           <version>3.2.0</version>
+           <executions>
+             <execution>
+               <id>copy-resources</id>
+               <phase>process-resources</phase>
+               <goals>
+                 <goal>copy-resources</goal>
+               </goals>
+               <configuration>
+                 <outputDirectory>${project.build.directory}/custom-resources</outputDirectory>
+                 <resources>
+                   <resource>
+                     <directory>src/main/custom</directory>
+                     <filtering>true</filtering>
+                   </resource>
+                 </resources>
+               </configuration>
+             </execution>
+           </executions>
+         </plugin>
+   ```
+
+   Ovde konfigurisemo da kopira iz src/main/custom direktoriju u target/custom-resources direktorijum
+
+4. `maven-surefire-plugin` : Ovaj plugin nam omogucava da ranujemo unit tests u build procesu
+
+   ```xml
+   <plugin>
+           <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-surefire-plugin</artifactId>
+           <version>3.0.0-M5</version>
+           <configuration>
+             <includes>
+               <include>**/*Test.java</include>
+             </includes>
+           </configuration>
+         </plugin>
+   ```
+
+   Runuj sve testove koji ispunjavaju pattern
+
+5. `maven-jar-plugin`  : Ovaj plugin nam omogucava da kreiramo JAR file nase aplikacije,mozemo da include ili exclude neke fajlove
+
+```xml
+<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>com.example.Main</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+  </plugin>
+```
+
+Kazemo mu da main klasu doda na classpath
+
+Mi kada pravimo spring-boot apps nama uglavnom treba samo `maven-jar-plugin`
+
+Maven sadrzi po default-u `maven-jar-pluigin` u svom lifecycle pa ne moramo da menjamo,ako hocemo da ga customize onda:
+
+```xml
+  <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>3.2.0</version>
+            <configuration>
+                <archive>
+                    <manifest>
+                        <mainClass>com.example.MainClass</mainClass>
+                    </manifest>
+                </archive>
+            </configuration>
+        </plugin>
+```
+
+Ovde smo rekli gde je main klasa
+
+Ako imamo ***biblioteku*** onda koristimo `maven-jar-plugin` ali sa konfiguracijom 
+
+
+
+```xml
+<plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>3.2.0</version>
+            <configuration>
+                <archive>
+                    <manifest>
+                        <addClasspath>true</addClasspath>
+                    </manifest>
+                </archive>
+                <excludes>
+                    <exclude>**/Main.class</exclude>
+                </excludes>
+            </configuration>
+        </plugin>
+```
+
+ili
+
+```xml
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-jar-plugin</artifactId>
+      <version>3.2.0</version>
+      <configuration>
+        <finalName>${project.artifactId}</finalName>
+        <archive>
+          <manifest>
+            <addClasspath>true</addClasspath>
+            <classpathPrefix>lib/</classpathPrefix>
+          </manifest>
+        </archive>
+      </configuration>
+    </plugin>
+```
+
+
+
+
+
 ##  java.net.http
 
 Ovo je abstract class i sluzi za slanje requetova preko http protokola

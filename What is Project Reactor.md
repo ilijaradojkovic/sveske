@@ -341,7 +341,7 @@ Imamo predefinisane ove handler-e
 Sinks.Many<Integer> moviesInfoSink = Sinks.many().replay().all();
 ```
 
-```
+```java
 @PostMapping("/movieinfos")
 public Mono<MoiveInfo> addMovieInfo(@ReqeustBody @Valid MoviewInfo movieInfo){
     return moviesInfoService.addMovieInfo(movieInfo) -> service ce nam vratiti Mono pa mozemo primeniti mono operacije
@@ -415,6 +415,353 @@ MonoInstance.doFinaly(Consumer)       -> uradice na kraju ovaj consumer funkcion
 ## Flux
 
 Ovo je objekat koji prima 0..M drugih,on time emituje te druge objekte kroz vreme.
+
+```java
+Flux.just(data...) -> Kreira flux na osnovu podataka ...
+	.fromIterable(Iterable) -> Kreira Flux na osnovu itreable neke
+    .range(start,end) -> Kreira Flux na sonovu int-a redom od start do end inkrementalno
+    .from(Publisher<T>) -> Kreira Flux na osnovu nekkog publishera to moze biti Flux ili Mono isto
+    .generate(initialState,generator)
+   
+```
+
+
+
+```
+ 
+    		generate(
+    			()->0, 							-> initial state 
+    			(state,sink) ->{				-> State nam je kao sta generisemo,taj tip,i 														predstavlja prethodnu vrednost
+    											 Sink nam omogucava da se pomeramo izmedju state
+                    sink.next(state);			-> Moramo imati sink.next kako bi se kretali kor 														sink
+                    if(state==9){
+                        sink.complete();
+                    }
+                    return state+1;
+                		}
+                    )
+                    
+                    
+=====================================================================================================
+                     Flux<Game> generate = Flux.generate(
+                            () -> new Game(),
+                            (integer, synchronousSink) -> {
+                                synchronousSink.next(integer);
+                                Game game = new Game();
+                                game.setId(UUID.randomUUID().toString());
+                                return game;
+                            }
+        );
+        generate.concatMap(x->Flux.just(new GameModel(x.getId(),Math.random(),Math.random()),new 								GameModel(x.getId(),Math.random(),Math.random())))
+
+				.delayElements(Duration.ofSeconds(1)).subscribe(System.out::println);
+				
+	Na svaku jednu generisanu igru generisace 2 GameModel-a i tako u beskonacno
+
+```
+
+```java
+Flux.interval(Duration) -> izvrsava Flux na svakih Duration vremena
+    empty() -> kreira prazan
+    combineLatest(FluxSource1,FluxSource2,Function for combining values) -> Ovo radi tako sto mi prosledimo flux-ove i onda on uzima zadnju vrednost za fluxove i kombinuje ih pomocu ove funkcije
+	
+```
+
+```
+  		Flux<Integer> source1 = Flux.just(1, 2, 3);
+        Flux<String> source2 = Flux.just("A", "B", "C");
+        Flux<Double> source3 = Flux.just(0.1, 0.2, 0.3);
+
+        Flux.combineLatest(source1, source2, source3,
+                (num, str, dbl) -> num + "-" + str + "-" + dbl)
+                .subscribe(System.out::println);
+```
+
+Mozemo proslediti vise fluxova,birno je da os source1 i souce2 uzima zadnju vrednost a ovaj zadnji source uzima sve redom
+
+
+
+```
+Flux.concat(publishers...) -> spaja vise publishera zajedno
+```
+
+```
+   Flux<Integer> source1 = Flux.just(1, 2, 3);
+        Flux<Integer> source2 = Flux.just(4, 5, 6);
+        Flux<Integer> source3 = Flux.just(7, 8, 9);
+
+        Flux.concat(source1, source2, source3)
+                .subscribe(System.out::println);
+         
+        1,2,3,4,5,6,7,8,9
+        
+```
+
+```java
+Flux.create(custom defined producer)-> kreiramo i imamo vecu kontrolu sta se salje ,jer mi definisemo 									  sta se salje
+```
+
+```
+  Flux<Integer> customFlux = Flux.create(emitter -> {
+            emitter.next(1);
+            emitter.next(2);
+            emitter.next(3);
+            emitter.complete();
+        });
+        ali moramo subscribe da bi radilo
+```
+
+```
+Flux.defer(Supplier)-> Ovo lazily kreira Flux,odlaze kreiranje fluxa.
+```
+
+```
+   Flux<Integer> deferredFlux = Flux.defer(() -> {
+            int randomNumber = (int) (Math.random() * 100);
+            return Flux.just(randomNumber);
+        });
+```
+
+```
+Flux.fromStream(Stream)
+```
+
+```
+  List<String> fruits = Arrays.asList("Apple", "Banana", "Orange");
+
+        Stream<String> fruitStream = fruits.stream();
+
+        Flux<String> fruitFlux = Flux.fromStream(fruitStream);
+```
+
+```
+Flux.merge(fluxes...)
+```
+
+```
+ 	    Flux<Integer> flux1 = Flux.just(1, 2, 3);
+        Flux<Integer> flux2 = Flux.just(4, 5, 6);
+
+        Flux<Integer> mergedFlux = Flux.merge(flux1, flux2);  
+```
+
+Merge radi tako sto spaja flux i salje elemente cim budu dostupni,dok concat salje cim svi budu dostupni
+
+
+
+Kada napravimo instancu fluxa mi mozemo da dodajemo neke funckije:
+
+```
+	FluxIntance.delayElements(Duration) -> Svaki element delay
+		  .map(...)
+		  .delayUntil(Funtion<FluxElementType,Publisher>) -> delay emisiju elementa sve dok se 																provajdovan mono ne emituje singal
+```
+
+```
+
+  	Flux<Integer> flux = Flux.range(1, 5);
+        Mono<Void> delayMono = Mono.delay(Duration.ofSeconds(2)).then();
+
+        Flux<Integer> delayedFlux = flux.delayUntil(signal -> delayMono);
+
+        delayedFlux.subscribe(System.out::println);
+```
+
+
+
+```
+FluxInstance.disticnt()
+		   .distinct(pocemu)
+```
+
+```
+FluxInstance.flatMap(function<fluxelement,Publisher>) ->Emituje za svaki element Publisher
+```
+
+```
+ .flatMap(ignore ->  {
+     return redisTemplate.opsForZSet().rangeWithScores(Configuration.currentPoints,Range.unbounded());
+
+               })
+               
+               
+  Flux.just(1,2,3).flatMap(x->Flux.just(x,-1)) emitovace 
+  1 -1 2 -1 3 -1 vidimo da sve emituje iz ovo just dela 
+  ova funkcija nam omogucava da emitujemo vrednosti `paralelno` i redosled nije zagarantovan,takodje ovo je parallel.Po defaultu nije parallel ali moze da se uvede to nije moguce da uradimo na concatmap
+  
+   Flux<Integer> flux = Flux.range(1, 5);
+
+        Flux<String> result = flux.flatMap(number -> {
+            return Flux.just(number)
+                    .map(n -> "Processed: " + n)
+                    .subscribeOn(Schedulers.parallel());
+        });
+```
+
+On ce da raspakuje taja Mono ili Flux koji vraca 
+
+```
+FluxInstance.repeat()
+			.repeat(BooleanInstance); ponavlja izvrsavanje fluxa
+```
+
+```
+repeat(()->boolean)
+```
+
+```
+FluxInstance.take(number_of_elements)
+			.takeWhile(Predicate)
+			.takeLast(number)
+			.takeUntill(Predicate)
+```
+
+```
+FluxInstance.subscribe() -> ovo pocinje flux
+			.subscribe(
+			consumer -> uradi na svaki element emitovan
+			,errorConsumer -> uradi ako se desi error
+			,completeConsumer
+			); -> uradi ako se zavrsi
+			
+			
+```
+
+```
+ flux.subscribe(
+            element -> System.out.println("Element: " + element),
+            error -> System.err.println("Error: " + error),
+            () -> System.out.println("Completed")
+        );
+```
+
+
+
+```
+FluxInstance.concatMap(Function<FluxElementType,Flux>) -> transformisi svaki element koji se emituje u flux
+```
+
+```
+Flux.just(1,2,3).concatMap(x->Flux.just(x+20));
+
+ispisace 21 22 23 
+flatMap bi ispisala i brojeve u just(...) delu
+ova funkcija nam omogucava da emitujemo vrednosti `sekvencijalno` i redosled je zagarantovan,takodje ovo nije parallel
+```
+
+
+
+```
+FluxInstance.materialize() -> ovo ceo flux pretvara u FLux<Singal<nasTip>> sto znaci da ce se svaki event u fluxu koji su bili razliciti sada pretvoriti u jedan signal
+```
+
+```
+Flux<Signal<Integer>> materializedFlux = flux.materialize();
+
+        materializedFlux.subscribe(signal -> {
+            if (signal.getType() == SignalType.ON_NEXT) {
+                System.out.println("Value: " + signal.get());
+            } else if (signal.getType() == SignalType.ON_ERROR) {
+                System.err.println("Error: " + signal.getThrowable());
+            } else if (signal.getType() == SignalType.ON_COMPLETE) {
+                System.out.println("Completed");
+            }
+        });
+```
+
+```
+FluxInstance.dematerialize()
+
+Flux<Signal<Integer>> flux = Flux.just(
+                Signal.next(1),
+                Signal.next(2),
+                Signal.next(3),
+                Signal.complete()
+        );
+
+        Flux<Integer> dematerializedFlux = flux.dematerialize();
+
+        dematerializedFlux.subscribe(
+                value -> System.out.println("Value: " + value),
+                error -> System.err.println("Error: " + error),
+                () -> System.out.println("Completed")
+        );
+```
+
+```
+FluxInstance... then(mono) -> kad se sve zavrsi vrati ovaj Mono
+
+     Flux<Integer> flux = Flux.just(1, 2, 3);
+
+        flux
+            .doOnComplete(() -> System.out.println("Flux completed"))
+            .then(Mono.fromRunnable(() -> System.out.println("Action executed")))
+            .subscribe();
+    }
+    
+    Flux completed
+Action executed
+```
+
+```
+FluxInstance.subscribeWith(Subscriber) -> na postojeci subscriber se suba
+```
+
+```
+FluxInstance.buffer(max) -> ovo ce uzimati max elemenata koji se emituju i ujedinice ih u listu i to 												ce da vraca sada 
+
+Flux.range(1, 10)
+    .buffer(3)
+    .subscribe(System.out::println);
+    
+[1, 2, 3]
+[4, 5, 6]
+[7, 8, 9]
+[10]
+FluxInstance.buffer(Duration) -> emitovace na osnovu vremena,duration time window
+
+FluxInstance.buffer(Publisher) -> Svaki put kada publisher emituje signal on ce da pokupi elemente u listu
+
+```
+
+```
+FluxInstance.cache() -> kesira da se ne vraca sve opet
+			.cache(duration)
+			.cache(int history)
+```
+
+```
+FluxInstance.checkpoint(String) -> debug
+```
+
+```
+FluxInstance.collectList() -> vraca listu
+			.collect(Collector)
+			.collectSortedList()
+			.collectSortedList(Comparator)
+			.collectMap(Function<FluxElementType,Key>,Function<FluxElementType,Value) -> imamo value 																			i key mapper-e
+```
+
+```
+FluxInstance.delaySequance(Duration) -> emituje sve posle DUration sekundi,ne svaki pojedinacno
+			.delaySequance(Publisher) -> na osonovu vracanje vrednosti publishera radi delay
+```
+
+```
+FluxInstance.window(size) -> Ovo ce automatski da prepakuje Flux<Element> u Flux<Flux<Element>> jer ce da uzme window size i da ga obradi tako pojedinacno
+			.window(Duration)
+			.windowUntill(predicate)
+```
+
+```
+FluxInstance.timed()-> Ovo vraca Flux<Timed<Objectnas>> ovaj timed objekat ima informacije o vremenu
+```
+
+```
+FluxInstance.groupBy()
+```
+
+
 
 ## Sending Elements Reactive
 

@@ -422,3 +422,194 @@ services:
 		build: /Reservation -> a mozemo samo i ovako da mu damo putanju
 ```
 
+
+
+
+
+## No dependency app
+
+```
+FROM eclipse-temurin:19-jdk-alpine
+WORKDIR /app
+
+COPY target/springapp.jar springapp.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","springapp.jar"]
+```
+
+Lako je jer nemamo zavisnosti i nemamo `env` varijable
+
+## Postgres dependency
+
+```
+FROM eclipse-temurin:19-jdk-alpine
+WORKDIR /app
+
+COPY target/springapp.jar springapp.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","springapp.jar"]
+```
+
+Dockerfile ce biti isti 
+
+Jer smo ubacili postgres dependency moramo da konfigurisemo application.yml fajl
+
+```yml
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:admin}
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/${DB_NAME:test}
+```
+
+jer su ovo sve vrednosti koje moramo da ubacimo on su `environment` varijable,i njih necemo da hardkodujemo jer zavise od container-a
+
+svaka env varijabla pocinje sa ${IME}
+
+
+
+## FILE 
+
+```
+FROM eclipse-temurin:19-jdk-alpine
+WORKDIR /app
+
+COPY target/springapp.jar springapp.jar
+EXPOSE 8080
+
+COPY target/classes/test.txt /app/test.txt
+
+ENTRYPOINT ["java","-jar","springapp.jar"]
+```
+
+Ovde cemo promeniti Dodckerfile jer mi moramo da premestimo(kopiramo) fajl koji zelimo koji koristimo u kodu,njegova putanja ce biti razlicita kada ga smestimo u container.Ne mozemo apsolutno da ga referenciramo jer to u docker-u nece biti dobra putanja,moramo da ga kopiramo
+
+u kodu ovaj fajl otavaramo sa 
+
+```java
+new File("test.txt")
+```
+
+Kako je /app nas root directory i mi smo test.txt kopirali u root directory mozemo samo ovako da ga referenciramo
+
+Da imamo slucaj da hocemo fajl da ubacimo u neki subfolder moramo da promenimo nacin na koji ga otvaramo,onda nece biti "test.txt" samo 
+
+```
+FROM eclipse-temurin:19-jdk-alpine
+WORKDIR /app
+
+COPY target/springapp.jar springapp.jar
+EXPOSE 8080
+
+
+
+RUN mkdir /app/mydirectory
+COPY target/classes/test.txt /app/mydirectory/test.txt
+ENTRYPOINT ["java","-jar","springapp.jar"]
+```
+
+Izvrsili smo komandu mkdir i napravili novi folder i u njega stavili test.txt,pa da bi mu pristupili ne mozemo vise da koristimo samo "test.txt" jer nije u root-u nec u subdirectory
+
+```java
+new File("subfile/test.txt")
+```
+
+## Multi- module
+
+Zaboravio si da moras da dodas component scan za pakete razlicitik mikroservisa
+
+Kako nas `jar` file sadrzi sve bibiloteke tako sadrzi i neke biblioteke koje smo mi ref u pomu,sto znaci da ima i bibloteke iz drugih modula
+
+
+
+
+
+i kada imamo 
+
+```java
+ @Value("${test.test}")
+    private String test;
+```
+
+jer je ovo iz common lib u nas jar ce se ubaciti ovo,ali u nas mikroservice app moramo imati ovaj test.test u yml fajlu .Jer on gleda lokalno u jaru u kom se nalaze jer ovaj common nije app za sebe vec lib
+
+
+
+
+
+## docker compose
+
+
+
+```
+depends:
+ - imeservica
+ - imeservica
+      .
+      .
+      .
+```
+
+
+
+Znaci da ce se sve ovi servisi pre runovati pa tek onda ovaj sto zavisi od njih
+
+ZNamo da bi dodali network idmeo:
+
+```
+service:
+ myapp:
+  networks:
+   - testing
+
+networks:
+ testing:
+  driver: bridge
+```
+
+Ako hocemo da podesavamo sam network idmeo:
+
+```
+service:
+ myapp:
+  networks:
+   testing:
+    ipv4_address: damo mu neku ip
+
+networks:
+ testing:
+  driver: bridge
+```
+
+```
+version: "3"
+services:
+	wordpress:
+		image: wordpress
+		networks:
+			- wordpresnetwork
+		depends_on:
+			-mysql
+		ports:
+			-"8080:8080"
+		environment:
+			WORDPRESS_DB_HOST: mysql
+			WORDPRESS_DB_USER: root
+			WORDPRESS_DB_PASSWORD: "coffie"
+			WORDPRESS_DB_NAME: wordpress
+	mysql:
+		image: mysql:5.7
+		networks:
+			- wordpresnetwork
+		environment:
+			MYSQL_DATABSAE: wordpress
+			MYSQL_ROOT_PASSWORD: "coffie"
+		volumes:
+			- ./msql:/var/lib/mysql-> ./msql u trenutnom direktorijumu napravi novi folder(volume) msql i mapiraj (:)unutar container-a
+networks:
+	wordpresnetwork:
+		driver: bridge
+		
+```
+
