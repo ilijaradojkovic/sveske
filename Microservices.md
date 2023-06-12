@@ -216,3 +216,18 @@ Kako on radi?
 5. Ako servis odgovori uspesno,cirucit breaker ce se zatvoriti i radimo normalno
 
 Bitno je da razumemo da je ovo ideja `kola` sve dok je kolo otovoreno necemo mocu da saljemo na taj servis opet
+
+### Rate Limiting(Client focus)
+
+Ogranicavamo pozive na api po klijntu.Kazemo da mozemo na endpoint GET /product da imamo 100 poziva per second npr.
+
+Koristimo 429 kod
+
+### Load Shedding(System focus)
+
+Ogranicava pozive u odnosu na stanje sistema.Mi smo u rate limitingu imal ida zavisimo i ogranicavamo od stanja klijenta tj koliko pozia je imao,a ovde mi ogranicavamo u zavisnosti od backend stanja,CPU ...
+
+Koristimo 503 kod
+
+
+

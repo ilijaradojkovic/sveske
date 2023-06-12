@@ -4,6 +4,8 @@ Da bi uopste radili sa Oauth2 standardima u Spring-u moramo dodati dependency za
 
 Dodajemo za client jer se mi ponasamo kao klijenti koji hoce da koriste google authorization server.
 
+Pored ovoga ako nam je projekat u test okruzenju(app nije publish sto nije kada se napravi) moramo da dodamo test user-a.Idemo na tab ispod credentials koji se zove `Oauth consent screen` i tu dodamo test user-a sa nasim emailom.
+
 ## 1)
 
 ```xml
@@ -52,7 +54,7 @@ spring:
             client-secret: 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
 ```
 
-Ovo bi bila najednostavnija oknfiguracija.Opazimo ovde da imamo registration  pa google e to znaci da je nas registration id iz koraka 2 kada smo registrovali redirect uri bas to ime google,da smo ga drugacije nazvali morali bi druacije da registruje redirect uri
+Ovo bi bila najednostavnija konfiguracija.Opazimo ovde da imamo registration  pa google , to znaci da je nas registration id iz koraka 2 kada smo registrovali redirect uri bas to ime google,da smo ga drugacije nazvali morali bi druacije da registruje redirect uri
 
 Znaci redirect uri zavisi od registratio nid iz koraka 3.
 

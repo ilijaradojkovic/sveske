@@ -38,11 +38,11 @@ The major benefits, which are delivered by Spring Cloud Gateway:
 
   Web Handler upravlja filterima:
 
-  Pre-Filter -> ovo je filter koji se desava uvek pre requestsa,manipulate request
+  <span style="color:red">Pre-Filter</span> -> ovo je filter koji se desava uvek pre requestsa,manipulate request
 
-  Global Filter -> ovo je filter koji se desava uvek na svakom requestu
+  <span style="color:red">Global Filter</span>-> ovo je filter koji se desava uvek na svakom requestu
 
-  Post Filter ->ovo je filter koji se desava uvek posle requesta,manipulate response
+  <span style="color:red">Post Filter</span> ->ovo je filter koji se desava uvek posle requesta,manipulate response
 
   
 
@@ -56,7 +56,7 @@ Mi Gateway mozemo koristiti na dva nacina:
 
 2) New App for gateway![image-20221216235814660](C:\Users\radoj\AppData\Roaming\Typora\typora-user-images\image-20221216235814660.png)
 
-The first feature of Spring Cloud Gateway I am going to describe is a configuration of request processing. It can be considered the heart of the gateway. It is one of the major parts and responsibilities. As I mentioned earlier this logic can be created by java code or by YAML files. Below I add an example configuration in YAML and Java code way. Basic building blocks used to create processing logic are: 
+Najvaznija stvar kod kreiranja Spring Cloud Gateway-a je kreiranje konfiguracije,ta konfiguracija je srce gateway-a on odatle cita ruta i sta da radi.MI konfiguraciju mozemo pisati u `YML` fajlu ili u `JAVA CLASS` .Osnovni konepti:
 
 - Predicates – match requests based on their feature (path, hostname, headers, cookies, query) 
 - Filters – process and modify requests in a variety of ways. Can be divided depending on their purpose: 
@@ -65,9 +65,7 @@ The first feature of Spring Cloud Gateway I am going to describe is a configurat
 
 ![spring_cloud_gateway_diagram](C:\Users\Ilija\Downloads\spring_cloud_gateway_diagram.png)
 
-Clients make requests to Spring Cloud Gateway. If the Gateway Handler Mapping determines that a request matches a route, it is sent to the Gateway Web Handler. This handler runs the request through a filter chain that is specific to the request. The reason the filters are divided by the dotted line is that filters can run logic both before and after the proxy request is sent. All “pre” filter logic is executed. Then the proxy request is made. After the proxy request is made, the “post” filter logic is run.
-
-
+Klijenti salju zahteve na Spring Cloud Gateway.Prva komponenta na koju nailazi zahtev je `Gateway Handler Mapping` koji odredjuje koja ruta se gde match,posle toga se susrece sa `Gateway Web Handler` koji radi filtere nad rutom.FIlteri mogu biti `pre` i `posle` izvrsavanja rute,zato su ovako podeljeni isprekidanom linijom
 
  URIs defined in routes without a port get default port values of 80 and 443 for the HTTP and HTTPS URIs, respectively.
 
@@ -80,6 +78,293 @@ To implement Spring Cloud Gateway, the following steps can be followed:
 5. Add security to the Gateway by configuring it with Spring Security and defining the necessary security policies.
 6. Start the Gateway by running the Spring Boot application.
 7. Test the Gateway by making requests to the defined routes and verifying the expected responses.
+
+Spring Cloud Gateway koristi `WebFlux` i `netty` po defaultu 
+
+### Add Spring Cloud Gateway dependency
+
+```xml
+<dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-gateway</artifactId>
+    </dependency>
+```
+
+### Annotate 
+
+```java
+@SpringBootApplication
+@EnableGateway
+class ...
+```
+
+### Create Routes
+
+Mi rute mozemo da napravimo na dva nacina:
+
+* YML file
+
+  ```YML
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: after_route
+          uri: https://example.org
+  ```
+
+  <span style=color:red>id</span> -> oznacava id rute,ovo je kako cemo da je zovemo
+
+  <span style=color:red>uri</span> -> je uri mikroservise koji gadjamo
+
+  <span style=color:red>predicates</span> -> ovo su predikati koji se moraju ispuniti (true,false) da bi ruta prosla dalje
+
+  ​		<span style=color:red>Path</span> -> jedan od tih predikata je Path koji kaze da gadjana ruta na gateway mora da bude /test2,on gleda koja 					se ruta gadjala  na gateway i ima veze samo sa uri koji se gadja na gateway.
+
+  ​			<span style=color:red>After</span> -> prima datum(ZonedDateTime) i request se mora desiti posle ovog datuma da bi prosao dalje
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: after_route
+          uri: https://example.org
+          predicates:
+          - After=2017-01-20T17:42:47.789-07:00[America/Denver]
+  ```
+
+  ​		<span style=color:red> Before</span> -> prima datum(ZonedDateTime) i request se mora desiti pre ovog datuma da bi prosao dalje
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: before_route
+          uri: https://example.org
+          predicates:
+          - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
+  ```
+
+  ​	<span style=color:red> Between</span> -> Prima dva datuma(ZonedDateTime) i request se mora desiti izmedju njih da bi prosao dalje
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: between_route
+          uri: https://example.org
+          predicates:
+          - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
+  
+  ```
+
+  ​	<span style=color:red> Cookie</span> -> Definisemo ime cookie koji mora request da ima ,takodje moze da primi i regex
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: cookie_route
+          uri: https://example.org
+          predicates:
+          - Cookie=chocolate, ch.p
+  ```
+
+  ​	<span style=color:red> Header</span> -> Definisemo ime headera koji mora request da ima ,takodje moze da primi i regex
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: header_route
+          uri: https://example.org
+          predicates:
+          - Header=X-Request-Id, \d+
+  
+  ```
+
+  ​	<span style=color:red> Host</span> -> mora da match host,prima pattern
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: host_route
+          uri: https://example.org
+          predicates:
+          - Host=**.somehost.org,**.anotherhost.org
+  
+  ```
+
+  ​	<span style=color:red> Method</span> -> koja metoda je u pitanju
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: method_route
+          uri: https://example.org
+          predicates:
+          - Method=GET,POST
+  
+  ```
+
+  ​	<span style=color:red> Path</span> -> mora da match kao pattern path rute
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: path_route
+          uri: https://example.org
+          predicates:
+          - Path=/red/{segment},/blue/{segment}
+  
+  ```
+
+  Koristi PathMatcher u pozadini
+
+  <span style=color:red> Query</span> -> prima jedan ili vise parametra,takodje moze da primi regex
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: query_route
+          uri: https://example.org
+          predicates:
+          - Query=red, gree.
+  
+  ```
+
+  
+
+  <span style=color:red>filters</span> -> ovo je veoma vazan deo i to manipulise samim requestom i response-om zavisi sta stavimo
+
+  ​		<span style=color:red>AddRequestHeader</span> -> ovo dodaje  u request koji nam je stigao header,ovaj filter prima key i value zato imamo 
+
+  ​											X-Tenant koji je key i acme koji je value
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: add_request_header_route
+          uri: https://example.org
+          filters:
+          - AddRequestHeader=X-Request-red, blue
+  ```
+
+  ​				<span style=color:red>AddRequestHeadersIfNotPresent</span> -> ako nije present dodace,ako postoji ostavice tu vrednost tog 																			headera,fora je sto samo header mora da postoji
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: add_request_headers_route
+          uri: https://example.org
+          filters:
+          - AddRequestHeadersIfNotPresent=X-Request-Color-1:blue,X-Request-Color-2:green
+  
+  ```
+
+  ​										
+
+  <span style=color:red>AddResponseHeader</span> ->ovo dodaje u response koji smo dobili od mikroservisa header,isto kao i ovaj gore 												dodaje header uz pomoc key i value paira.
+
+  
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: add_response_header_route
+          uri: https://example.org
+          filters:
+          - AddResponseHeader=X-Response-Red, Blue
+  
+  ```
+
+  
+
+  <span style=color:red>CircuitBreaker</span> ->Ovo koristi CircuitBreaker
+
+  ```yml
+  spring:
+    cloud:
+      gateway:
+        routes:
+        - id: circuitbreaker_route
+          uri: https://example.org
+          filters:
+          - CircuitBreaker=myCircuitBreaker
+  
+  ```
+
+  
+
+  
+
+  Mi filtere mozemo da upotrebimo na svakoj ruti pojedinacno,a mozemo da definisemo i globalni filter koji ce se primenjivati na svim rutama
+
+  Dodali smo default filter koji je za retry,vidimo da broj pokusaja (retry) je 3
+
+  Ovo mozemo testirati tako sto cemo ugasiti microservice na koji gateway prosledjuje uri, i tako ce on pokusavati (retry) 3 puta ,videcemo da ce duze da traje taj zahtev bas zbot tog retry
+
+  
+
+* Java functional programing
+
+  ```java
+  @SpringBootApplication @EnableGateway public class GatewayApplication {
+  Copy codepublic static void main(String[] args) {
+      SpringApplication.run(GatewayApplication.class, args);
+  }
+  
+  @Bean
+  public RouteLocator myRoutes(RouteLocatorBuilder builder) {
+      return builder.routes()
+                    .route(p -> p.path("/users/**")
+                                 .filters(f -> f.addRequestHeader("X-Request-Foo", "Bar"))
+                                 .uri("http://localhost:8080/users"))
+                    .route(p -> p.path("/products/**")
+                                 .filters(f -> f.addRequestHeader("X-Request-Foo", "Bar"))
+                                 .uri("http://localhost:8080/products"))
+                    .build();
+  }
+  ```
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -185,33 +470,20 @@ public RouteLocator appRouteLocator(RouteLocatorBuilder builder, RedisRateLimite
 
 ere is an example of a Spring Cloud Gateway implementation:
 
-@SpringBootApplication @EnableGateway public class GatewayApplication {
+
 
 ```
-Copy codepublic static void main(String[] args) {
-    SpringApplication.run(GatewayApplication.class, args);
-}
 
-@Bean
-public RouteLocator myRoutes(RouteLocatorBuilder builder) {
-    return builder.routes()
-                  .route(p -> p.path("/users/**")
-                               .filters(f -> f.addRequestHeader("X-Request-Foo", "Bar"))
-                               .uri("http://localhost:8080/users"))
-                  .route(p -> p.path("/products/**")
-                               .filters(f -> f.addRequestHeader("X-Request-Foo", "Bar"))
-                               .uri("http://localhost:8080/products"))
-                  .build();
-}
 ```
 
 }
 
 In this example, the GatewayApplication class is annotated with @SpringBootApplication and @EnableGateway to enable the Gateway functionality. The myRoutes() method uses the RouteLocatorBuilder to define two routes, one for "/users/**" and another for "/products/**". Both routes apply a filter to add a request header and forward the request to the specified target URI. The routes are then registered with the Gateway by returning them as a RouteLocator bean.
 
-@SpringBootApplication @EnableGateway public class GatewayApplication {
+
 
 ```
+@SpringBootApplication @EnableGateway public class GatewayApplication {
 Copy codepublic static void main(String[] args) {
     SpringApplication.run(GatewayApplication.class, args);
 }
@@ -517,30 +789,6 @@ We can configure how long the circuit should stay in the OPEN state without tryi
 ```
 
 routes  ubacujemo niz zato svaka ruta koju cemo da pisemo pocinje sa <span style=color:red>-</span>
-
-<span style=color:red>id</span> -> oznacava id rute,ovo je kako cemo da je zovemo
-
-<span style=color:red>uri</span> -> je uri mikroservise koji gadjamo
-
-<span style=color:red>predicates</span> -> ovo su predikati koji se moraju ispuniti (true,false) da bi ruta prosla dalje
-
-​		<span style=color:red>Path</span> -> jedan od tih predikata je Path koji kaze da gadjana ruta na gateway mora da bude /test2,on gleda koja se ruta gadjala  na gateway i ima veze samo sa uri koji se gadja na gateway.
-
-<span style=color:red>filters</span> -> ovo je veoma vazan deo i to manipulise samim requestom i response-om zavisi sta stavimo
-
-​		<span style=color:red>AddRequestHeader</span> -> ovo dodaje  u request koji nam je stigao header,ovaj filter prima key i value zato imamo 
-
-​											X-Tenant koji je key i acme koji je value
-
-​		<span style=color:red>AddResponseHeader</span> ->ovo dodaje u response koji smo dobili od mikroservisa header,isto kao i ovaj gore dodaje 											header uz pomoc key i value paira.
-
-
-
-Mi filtere mozemo da upotrebimo na svakoj ruti pojedinacno,a mozemo da definisemo i globalni filter koji ce se primenjivati na svim rutama
-
-Dodali smo default filter koji je za retry,vidimo da broj pokusaja (retry) je 3
-
-Ovo mozemo testirati tako sto cemo ugasiti microservice na koji gateway prosledjuje uri, i tako ce on pokusavati (retry) 3 puta ,videcemo da ce duze da traje taj zahtev bas zbot tog retry
 
 
 

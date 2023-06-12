@@ -199,6 +199,26 @@ ili
 
 
 
+## Batch
+
+Scheduled processing
+
+Ako imamo da nam dolaze 1000 fajlova 
+
+Pomocu Batcha mi cemo jednom u danu da sve to process
+
+
+
+## Stream
+
+Real time processing
+
+Ako imamo da nam dolaze 1000 fajlova 
+
+Pomocu Batcha mi cemo da process real time kako dolaze
+
+
+
 
 
 ##  java.net.http

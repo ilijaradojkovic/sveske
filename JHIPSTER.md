@@ -21,11 +21,11 @@ i sada mozemo pokrenuti jhipster generator preko :
 
 ## JDL Studio
 
-MI ne definisemo pk vec to on sam uradi,bice to long sa nazivom id
+* Mi ne definisemo `pk` vec to on sam uradi,bice to long sa nazivom `id`
 
-Moramo da pazimo na pisanje varijabli ,mora biti camel-case
+* Moramo da pazimo na pisanje varijabli ,mora biti camel-case
 
-Imena klasa tj entity moraju da pocinju velikim slovom
+* Imena klasa tj entity moraju da pocinju velikim slovom
 
 Ovde dodajemo nove entitete,moramo napraviti jdl fajl koji sadrzi medjusobne veze entiteta i samo ga import,jhipster ce sve sam da izgenerise.
 

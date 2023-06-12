@@ -289,45 +289,35 @@ public class Product {
 
  
 
-**@MapsId(value)**
+<span style="color:#FA5F55"> @MapsId(value)</span>
 
 Ovo value je za koje polje klase mapiramo
 
 Ako je primarni ljuc child tabele isti kao primarni kljuc roditeljske tabele
 
+```java
 @Entity
-
 Public class User{
-
-Private String email;
-
-Privat String password;
-
+    Private String email;
+    Privat String password;
 }
 
 @Entity
-
 Public class UserDetails{
+    @Id
+    Private int id;
 
-@Id
-
-Private int id;
-
- 
-
-@MapsId(value=”email”)
-
-@OneToOne
-
-Private User user;
-
+    @MapsId(value=”email”)
+    @OneToOne
+    Private User user;
 }
+```
 
  
 
  
 
-**@Temporal(**
+<span style="color:#FA5F55"> @Temporal</span>**(**
 
 **TemporalType** :TemporalType -> ovo je tip koji se cuva (DATE,TIMESTAMP)
 
@@ -345,7 +335,7 @@ Ovo pisemo samo za date varijable
 
  
 
-Multiple tables
+## Multiple tables
 
  
 
@@ -440,7 +430,7 @@ Glavne anotacije
 
  
 
-**@SecondaryTable(**
+<span style="color:#FA5F55"> @SecondaryTable</span>**(**
 
 **name** ->ovo je ime druge tabele
 
@@ -448,7 +438,7 @@ Glavne anotacije
 
 **)**
 
-**@PrimaryKeyJoinColumn(**
+<span style="color:#FA5F55"> @PrimaryKeyJoinColumn</span>**(**
 
 **name,** -> ovo je ime kolone u novoj tabeli,njen pk
 
@@ -500,7 +490,7 @@ U ovom slucaju imamo secondary table koja je referencirana od strane employee ta
 
  
 
-**@JoinColumn(**
+<span style="color:#FA5F55"> @JoinColumn</span>**(**
 
 **Name,** ->ovo je ime kolone u tabeli
 
@@ -535,7 +525,7 @@ U ovom slucaju imamo secondary table koja je referencirana od strane employee ta
 
 |      |                                                              |
 | ---- | ------------------------------------------------------------ |
-|      | ![img](file:///C:\Users\radoj\AppData\Local\Temp\msohtmlclip1\01\clip_image005.png) |
+|      | ![img](file:///C:\Users\ilija\AppData\Local\Temp\msohtmlclip1\01\clip_image005.png) |
 
  
 

@@ -35,7 +35,7 @@ Ne sadrzi informacije u sebi
 
 Sadrzi informacije u sebi
 
-JWT
+Primer za ovo je `JWT` token
 
 ## Encoding
 
@@ -851,6 +851,52 @@ Mi cemo da se login na PhotoService i zahtevati print,ali to ce nam trebati slik
 
 Postoje vise oauth2 nacina autorizacije tj vise flow typa,mi obradjujemo ovde kao main type **authorization code flow**
 
+### Authorization Code Flow
+
+![image-20230608141637479](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230608141637479.png)
+
+### Implicit Flow
+
+Ovo je flow gde se token odmah vraca bez razmene `authorization code-a`
+
+Ovo je rizican pristup
+
+Ovo vraca samo `access token` ,ne vraca id token ni refresh
+
+### Password Flow
+
+Ovo se radi tako sto se prosledi username i password ,obicno kroz neku formu.
+
+![image-20230608144234645](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230608144234645.png)
+
+
+
+### Client Credentials Flow
+
+Ovo koristimo izmedju masina (M2M) 
+
+![image-20230608144723640](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230608144723640.png)
+
+### Device Authorization Grant
+
+Ovo je poznato kao i Device Flow,ovo je dizajnirano za uredjaje sa input sposobnostima.Ovo je smart TV,gaming console, iot...
+
+### Client Types
+
+Postoje 2 vrste ovih tipova 
+
+#### Public Client
+
+Ovo je aplikacija koja ne moze bezbedno da cuva podatke kredencijala.To znaci da podaci kao sto su ClientID i Client Secret ne mogu da se cuvaju bezbedno.Primer ovih klijenta su native mobile apps,js apps,frontends.
+
+Oni obicno koriste samo  `authorization code grant type`
+
+#### Private Client
+
+Ovaj tip moze bezbeno da cuva svoje kredencijale.Ovo su backedn servisi.
+
+Oni obicno koriste `authorization code grant type`,`password grant type`,`client credentials grant type`
+
 The authorization code flow offers a few benefits over the other grant types. When the user authorizes the application, they are redirected back to the application with a temporary code in the URL. The application exchanges that code for the access token. When the application makes the request for the access token, that request can be authenticated with the client secret, which reduces the risk of an attacker intercepting the authorization code and using it themselves. This also means the access token is never visible to the user or their browser, so it is the most secure way to pass the token back to the application, reducing the risk of the token leaking to someone else.![Frame 5](C:\Users\Ilija\Desktop\Frame 5.png)
 
 Glavna fora je da mi ovo mozemo da koristimo izmedju mikroservisa za zahtevanje podataka,mikrosevice 1 nece imati pristup podacima koji ce imati microservice 2 pa ce od auth servera da trazi dozovlu.
@@ -892,7 +938,7 @@ Glavna fora je da mi ovo mozemo da koristimo izmedju mikroservisa za zahtevanje 
 
 4. If you look in the browser tools (F12 on Chrome or Firefox) and follow the network traffic for all the hops, you will see the redirects back and forth with GitHub, and finally you’ll land back on the home page with a new Set-Cookie header. This cookie (JSESSIONID by default) is a token for your authentication details for Spring (or any servlet-based) applications.
 
-So we have a secure application, in the sense that to see any content a user has to authenticate with an external provider (GitHub).
+5. So we have a secure application, in the sense that to see any content a user has to authenticate with an external provider (GitHub).
 
 | Name            | Type     | Description                                                  |
 | :-------------- | :------- | :----------------------------------------------------------- |
@@ -902,6 +948,10 @@ So we have a secure application, in the sense that to see any content a user has
 | `redirect_uri`  | `string` | **Required**.Gde ce da nas redirect kada se sve uspesno zavrsi |
 | `code_verifier` | `string` | **Optional.**Ovo saljemo da bi proverili code_challenge kako bi sprecili CSRF napad(PKCE) |
 | `grant_type`    | `string` | **Required**.Ovo je koji flow smo koristili (authorization_code postoje jos neki ali ovo je main i do sda objasnjen) |
+
+
+
+![image-20230531113759801](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230531113759801.png)
 
 An example of how OAuth 2.0 is used is when a user wants to log in to a third-party website or application using their Facebook account.
 

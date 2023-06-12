@@ -5,7 +5,7 @@
 3. Serialization & Deserialization
 4. Blocking Thread
 
-problem je sto kada hocemo da saljemo REST zahteve preko HTTP-ja mi uspostavljamo uvek 3way handshake i to je sporije i nije real time jer za svak irequest imamo request response
+problem je sto kada hocemo da saljemo REST zahteve preko HTTP-ja mi uspostavljamo uvek 3way handshake i to je sporije i nije real time jer za svaki request imamo request response
 
 Socket je protokol koji koristi `persistance tcp connection`
 
@@ -45,6 +45,8 @@ saljemo bytes preko TCP -ja
    3. Aeron(UDP)
 
 Postoje modeli komunikacije u RSocketu
+
+![image-20230530111352286](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230530111352286.png)
 
 ## Modeli Komunikacije
 
@@ -248,7 +250,7 @@ Bilo koji Exception da se baca u RSocketu ce se tretirati kao `ApplicationErrorE
     }
 
 
-@Test
+	@Test
     void doubleIt12Error() {
         Mono<Integer> integerMono = rSocketRequester.route("test12")
                 .data(Mono.just(2))
@@ -429,7 +431,7 @@ Kada mi hocemo da gadjamo neki socket messagemapping on ce pre toga da ode u ovo
 
 i to ce se izvrsiti pre savog uspostavljanja konekcije 1 
 
-znaci ako gadjamo request-stream mi cemo jedno mda ostvarimo konekciju pa ce jednom da se izvrsi ConnectionMapping samo,posle ce messageMapping normalno da radi
+znaci ako gadjamo request-stream mi cemo jednom da ostvarimo konekciju pa ce jednom da se izvrsi ConnectionMapping samo,posle ce messageMapping normalno da radi
 
 U slucaju da imamo rutu u ConnectionMapping moramo da koristimo  `setupRoute("...")`
 
@@ -638,6 +640,15 @@ Na klijentskom delu pre smo slali direktno na adresu i port,ali sda jer imamo SS
 RsocketBuilderInstance.transport(TcpClientTransport.create(TcpClient.create.host("..").port().secure()))
 ```
 
+Znaci koristimo 
+
+```java
+.tcp(...)  -> kada nemamo SSL
+.transport(...) -> kada imamo SSL
+```
+
+
+
 ## RSocket Auth
 
 ```
@@ -669,7 +680,7 @@ tu su nam i roles
 public class RSocketSecurity{
 	@Bean
 	public PayloadSocketAcceptorInterceptor interceptor(RSocketSecurity secutiry){
-		return security
+		return secutiry
             .simpleAuthentication()
             .authorizePayload(authorize->{
                               //kada se radi onaj setup deo da se 												radi auth
@@ -722,4 +733,14 @@ Da bi pristupili metadata koji se salje koristimo `MessageHeaders`
         // ...
     }
 ```
+
+### Hot Publisher vs Cold Publisher
+
+HotPublisher on objavljuje podatke odmah cim se napravi,ne ceka dase neko sub.
+
+```
+.publish().autoconnect(minSubscribers:0);
+```
+
+ColdPublisher ceka da se neko sub pa tek onda pocinje da objevljuje
 
