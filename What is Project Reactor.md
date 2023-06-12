@@ -1,4 +1,6 @@
-# What is Project Reactor?
+# Spring WebFlux
+
+## What is Project Reactor?
 
 Projekat Reactor je fremework ko je napravio spring.On implementira reactive API patterne,najpoznatiji Reactive Streams.Ako smo vec upoiznati sa Java 8 Streams brzo cemo se navici na ovo,postoji velika slicnost izmedju Stream i Flux(ili njegova pojedinacna verzija Mono).Glavna razlika ovih esencijalnih klasa reaktivnog programiranja je da je mono samo 1 objekat,dok je flux vise objekata.Oba ova objekta prate publisher-subscriber,i implementiraju backpressure,dok Java Stream API ne .
 
