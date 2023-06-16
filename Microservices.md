@@ -165,6 +165,8 @@ Sada se postavlja pitanje ako se mi uspesno auth i zahtev ode na order microserv
 
 Odgovor je preko **Access Token**.Svaki token sadrzi informacije,i svaki service ce da validira sam token,to je ono sto saljemo service da bi decode info,da bi video da li moze da ordari neku akciju
 
+Fora je da cemo mi postaviti gateway koji je `client` (registrovan client na auth server-u) i savki request koji dodje kod njega i nema odgovarajuci jwt token ce otici na loing stranu `autorizacionog servera` 
+
 ##  Puna Slika:
 
 ![image-20230408191427285](C:\Users\radoj\AppData\Roaming\Typora\typora-user-images\image-20230408191427285.png)

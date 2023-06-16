@@ -863,6 +863,8 @@ Ovo je rizican pristup
 
 Ovo vraca samo `access token` ,ne vraca id token ni refresh
 
+![image-20230613122619974](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230613122619974.png)
+
 ### Password Flow
 
 Ovo se radi tako sto se prosledi username i password ,obicno kroz neku formu.
@@ -915,7 +917,7 @@ Glavna fora je da mi ovo mozemo da koristimo izmedju mikroservisa za zahtevanje 
 
    ​	auth_server_uri_authorize_endpoint?client_id=CLIENT_ID&redirect_uri=REDIRECT_URI&scope=SCOPE&response_type=RESPONSE_TYPE
 
-   ​	redirect_uri je uri koji smo mi registrovali na google app.Tu ce da nas redirect kada se uspesno prijavimo na google auth server,i kada redirect u parametre ce da ubaci code,i radice post odmah,ali kako mi nemamo tu rutu registrovanu na springu nece se nista desiti.Mi kada radimo default iz springa on automatski stavlja redirect_uri na onaj default jer taj je vec unutar springa registrovan(base/login/oauth2/registeredprovider) . Gde ces me redirect kada sam uspesno login na auth server 3rd partyija
+   ​	redirect_uri je uri koji smo mi registrovali na google app.Tu ce da nas redirect kada se uspesno prijavimo na google auth server,i kada redirect u parametre ce da ubaci code,i radice post odmah,ta ruta nam je odmah automatski provajdovana od strane Spring-a.Mi kada radimo default iz springa on automatski stavlja redirect_uri na onaj default jer taj je vec unutar springa registrovan(base/login/oauth2/registeredprovider) . Gde ces me redirect kada sam uspesno login na auth server 3rd partyija
    
    **Redirect uri** i **callback uri** su isti koncepti,predtavljaju uri na kojima cemo se redirect ako sve bude uspesno.
    
@@ -1172,10 +1174,6 @@ MOgucnost da neka 3rd party app koristi nase resurse
 ## CSRF
 
 Cross site request forgery
-
-
-
-
 
 Ovo je najlaksi nacin da uradimo
 

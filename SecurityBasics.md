@@ -450,6 +450,8 @@ saveToken pre po defaultu je uzimao sessionID ali to nemamo vise vec neki jedins
 
 ![image-20230213110915171](C:\Program Files\Typora\resources\Docs\img\image-20230213110915171.png)
 
+Spring vec ima definisan filter za proveru da li postoji CSRF to je CsrfFitler,a mi mozemo da napraivmo sami samo moramo da nasledimo OncePerRequestFilter,to ovaj CsrfFIlter i radi.Proveravali bi samo da li posotji i validnost,izvlacenje i cuvanje je u repository delu
+
 ## CORS
 
 CORS(Cross origin request  sharing) je mehanizam za deljenje resursa preko public ip-ja
@@ -482,7 +484,7 @@ To se resava tako sto server mora da dodja Access-control-Allow-Origin: ime orig
 
 Ovo je problem na serveru koji mora da doda ovaj header.
 
-Ovo funkcionise tako sto neki requestovi kao PUT POST moraju da budu preflight
+Ovo funkcionise tako sto neki requestovi kao PUT POST moraju da budu `preflight`
 
 browser automatski zna kada da preflight request i to salje OPTIONS da vidi da li server dozvoljava prenos tih resursa ,i kao rezultat server salje allow origin koji se salje .
 
