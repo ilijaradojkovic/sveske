@@ -1,6 +1,12 @@
 # SecurityBasics
 
-## Base64
+## Encoding
+
+Encoding je proces  pretvaranja ulaza u izlaz preko opstepoznatog formata.
+
+To znaci da imamo neki format koji upotrebljavamo da transformisemo ulaz u izlaz.Taj format je dostupan svima i svi mogu da ga provale
+
+### Base64
 
 Base64 is a widely used encoding scheme for data. Here are some of the popular Base64 encoders:
 
@@ -9,6 +15,106 @@ Base64 is a widely used encoding scheme for data. Here are some of the popular B
 3. Base32: It is another variant of Base64 encoding that uses a 32-character set instead of the 64 characters used in Base64.
 4. Base85: It is similar to Base64 but uses a larger character set (85 characters) to represent data.
 5. Ascii85: It is a variant of Base85 that uses ASCII characters for encoding.
+
+Ovo su najpoznatiji:
+
+```
+Base64.getEncoder();
+Base64.getMimeEncoder();
+Base64.getUrlEncoder();
+```
+
+Proces transformisanja  inputa
+
+```
+Base64.getDecoder();
+Base64.getMimeDecoder();
+Base64.getUrlDecoder();
+```
+
+Svaki Encoder ima odgovarajuci obrnuti proces koji se zove Decoder
+
+```
+NekiEncoder.encode(bytes[])
+NekiDecoder.decode(bytes[])
+```
+
+## Hasing
+
+Ovo je proces pretvaranja inputa u output koji se ne moze vratiti u input,znaci irreversable je.
+
+Tipovi:
+
+1. MD-5(128 bits) hacked
+
+2. SHA-1(160 bits)
+
+3. SHA-256(256 bits) ovo je najpouzdanije
+
+Klasa koja se koristi ovde je  <span style="color:red"> MessageDigest</span>
+
+```java
+MessageDigest.getInstance("type");
+
+MessageDigestInstance.diagest(bytes[]);
+```
+
+## Encoding
+
+Ovo je proces da mi stvaramo samostalne ili parove kljuceva koji ce da desifruju poruku,to je jedini nacin da se poruka desifruje
+
+<span style="color:red"> KeyGenerator</span>
+
+<span style="color:red"> Chiper</span>
+
+### Single key
+
+<span style="color:red"> SecretKey</span>
+
+Ovo je kljuc koji ce se koristiti i za sifrovanje i desifrovanje poruke.
+
+Postoje 2 tipa ovoga
+
+1. DES -> hakovan
+
+2. AES ->128 bits
+
+Chiper sadrzi dva mode to su Ciper.ENCRYPT_MODE i ciper.DECRYPT_MODE zavisi ta radimo 
+
+```java
+//generate key 
+KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+ keyGenerator.init(256);
+ SecretKey secretKey = keyGenerator.generateKey();
+//encode key
+Ciper chiper=Chiper.getInstance("AES");
+ciper.init(Ciper.Mode,secretKey);
+byte[] encripted=chiper.doFinla(message_bytes);
+```
+
+### DoubleKey
+
+Kreiramo 2 kljuca:
+
+<span style="color:red">PublicKey</span>
+
+<span style="color:red">PrivateKey</span>
+
+<span style="color:red">KeyPairGenerator</span>
+
+<span style="color:red">KeyPair</span>
+
+```java
+KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+keyGen.initialize(2048);
+KeyPair keyPair = keyGen.generateKeyPair();
+
+RSAPrivateKey aPrivate =(RSAPrivateKey) keyPair.getPrivate();
+RSAPublicKey aPublic = (RSAPublicKey) keyPair.getPublic();
+RSAKey finalKey= new RSAKey.Builder(aPublic).privateKey(aPrivate).keyID(UUID.randomUUID().toString()).build();
+```
+
+
 
 ## SecureRandom
 
