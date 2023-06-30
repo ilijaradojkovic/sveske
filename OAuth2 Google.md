@@ -1,10 +1,74 @@
-# OAuth2 Google
+# OAuth2 Client
 
-Da bi uopste radili sa Oauth2 standardima u Spring-u moramo dodati dependency za Oauth2 client.
+Klijen uloga u oauth2 flow-u je da je to reverse proxy na neki nacin koji zna kako(pomocu client secret i clinet id ) i gde da se poveze na auth server
 
-Dodajemo za client jer se mi ponasamo kao klijenti koji hoce da koriste google authorization server.
+Postoje 2 tipa klijenata:
 
-Pored ovoga ako nam je projekat u test okruzenju(app nije publish sto nije kada se napravi) moramo da dodamo test user-a.Idemo na tab ispod credentials koji se zove `Oauth consent screen` i tu dodamo test user-a sa nasim emailom.
+1. Public
+
+   Radi se o klijentima gde su `Client Secret` i `Client Id` javno dostupni,tj nase front app bi imali to i svaka bi mogla da posalje zahtev na auth server(pomalo neopverljivo)
+
+2. Private
+
+   Radi se o klijentima koji su backend aplikacije(nas gateway)
+
+Da bi radili sa ovim u Springu moramo da dodamo dependency:
+
+```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+```
+
+
+
+kada dodamo ovo spring ce sam da konfigurise neke rute da bi se ovo ponasalo kao klijent 
+
+bitna ruta nam je `callback url` ili `redirect url` koja glasi :
+
+```
+base/login/oauth2/code/provider
+```
+
+Mi moramo da konfigurisemo ovo u nasem application.yml fajlu:
+
+```yml
+  spring:
+   security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: CLIENTID
+            client-secret: CLIENT_SECERT
+            authorization-grant-type: FLOW
+            scope:
+              - SCOPE_EXAMPLE
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8080/realms/nomadesk
+            authorization-uri: http://localhost:8080/realms/nomadesk/protocol/openid-connect/auth
+            token-uri: http://localhost:8080/realms/nomadesk/protocol/openid-connect/token
+```
+
+
+
+
+
+u zavisnosti kog provajdera imamo ove komponente na provideru se drugacije podesavaju.
+
+Google ima svoj auth server i on ce imati drugaciji URL od Githuba itd.
+
+Ako hocemo nas custom kao sto je Spring Authorization Server ili Keycloak onda moramo mi sami da kazemo gde su te rute koje su potrebe da zna (to su issuer-uri, authorization-uri,token-uri).Ako se radi o google-u Spring vec ima te informacije interno cuvane.
+
+Koje on ima?To mozemo videti preko `enum-a` koji nudi:
+
+<span style="color:tomato">CommonOAuth2Provider</span>
+
+Da bi nam login radio tj da bi nas redirect na auth server mi u securitiju moramo da stavimo i <span style="color:tomato">HttpSecurityInstance.OAuth2Login()</span>
+
+## OAuth2 Google
 
 ## 1)
 
@@ -16,10 +80,6 @@ Pored ovoga ako nam je projekat u test okruzenju(app nije publish sto nije kada 
 ```
 
 
-
-
-
-Kada smo dodali ovaj dependency sada moramo namestiti google app da bi dobili client secret i client id.
 
 ## 2)
 
@@ -70,9 +130,9 @@ Napravimo novu klasu za configu security i u njoj
     return 
         1)httpSecurity.authorizeHttpRequests().anyRequest().authenticated()
            .and()
-        2).formLogin()
+        2).formLogin() -> dodaj nasu internu formu za login
             .and()
-        3).oauth2Login()
+        3).oauth2Login() -> ako imamo nasu formu dodaj na toj formi dugme za OAuth2 provajedere,ako 							nemamo nasu formu onda radi redirect odmah na OAtuh2 provajdere
             .and().build();
 }
 ```
@@ -83,13 +143,16 @@ Napravimo novu klasu za configu security i u njoj
 
 3)Ovime ce se display Oauth2 login izbori
 
+## Pristupi
 
+MI kada se login sve je ovo u session-u jer nismo drugacije rekli.Ako imamo session imamo mogucnost da autowire sami nase user-e(ne koristim rec client jer je to ona app koji salje request authorization serveru,user je nesto drugo to je neko ko pokusava da se login)direktno u controller metode
 
 Mi kada smo se login sada imamo pristup to useru preko 
 
-OidcUser->Interfejs 
-
-DefaultOidcUser->Konkrentna implementacija
+- <span style="color:tomato">OidcUser </span>->Interfejs  
+- <span style="color:tomato">DefaultOidcUser</span> ->Konkrentna implementacija
+- <span style="color:tomato">OAuth2User</span>
+- <span style="color:tomato">OAuth2AuthenticationToken</span>
 
 ```java
 @GetMapping("/user/openid")
@@ -112,7 +175,7 @@ public String oauth2Token(OAuth2AuthenticationToken auth2AuthenticationToken){
 
 Mi kada se registrujemo preko google po defaultu nam se inject session u nas browser i spring security context pa je to sso.
 
-OidcUser vs OAuth2User vs OAuth2AuthenticationToken
+### OidcUser vs OAuth2User vs OAuth2AuthenticationToken
 
 Svi su oni Principal
 

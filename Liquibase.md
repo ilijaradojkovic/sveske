@@ -10,15 +10,7 @@ Ovo je tool koji ugradimo u app,kao plugin ubacimo
     <configuration>
         <propertyFile>liquibase.properties</propertyFile>
     </configuration>
-    <dependencies>
-
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>0.11.2</version>
-        </dependency>
-
-    </dependencies>
+    
 </plugin>
 ```
 
@@ -50,8 +42,8 @@ sve fajlove cemo pisati u yml formatu
 
 Napravimo dva fajla u changelog-u:
 
-- db.changelog-diff.yml
-- db.changelog-master.yml
+- db.changelog-diff.yml -> ovde pisemo changelog promene koje hocemo da se dese u bazi
+- db.changelog-master.yml -> ovde je konfig gde da gleda koje fajlove
 
 Ova dva fajla su nam kljucna
 

@@ -30,7 +30,40 @@ Time omogucujemo anotacije za mapstruct.
 
 Mapstruct radi tako sto sto **anotiramo interfejs** **@Mapper**
 
+Kada dodamo mapstruct moramo da ga uskladimo sa lombokom,ako koristimo lombok.Moramo pripaziti na ovaj source za javu da nam se poklapa sa nasom
 
+```
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.5.1</version>
+            <configuration>
+                <source>18</source>
+                <target>18</target>
+                <annotationProcessorPaths>
+                    <path>
+                        <groupId>org.mapstruct</groupId>
+                        <artifactId>mapstruct-processor</artifactId>
+                        <version>${mapstruct-version}</version>
+                    </path>
+                    <path>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok</artifactId>
+                        <version>${lombok.version}</version>
+                    </path>
+                    <dependency>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok-mapstruct-binding</artifactId>
+                        <version>0.2.0</version>
+                    </dependency>
+                </annotationProcessorPaths>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
 
 Definisacemo 2 objekta
 
@@ -77,7 +110,7 @@ I onda mozemo koristiti metodu customerToDto koja ce sve to automatski mapirati
 
 ```java
 @Mapper(
-        imports = {UUID.class, AddOn.class},
+
         componentModel = MappingConstants.ComponentModel.SPRING,
         injectionStrategy = InjectionStrategy.CONSTRUCTOR
 )

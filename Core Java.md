@@ -693,3 +693,33 @@ Ovo je poglavnje za koriscenje decimalnih brojeva u Javi u situacijama kada su b
 
 Kako Java cuva ove brojeve?
 
+
+
+## DeadLock
+
+Ovo je stanje u koje sistem dolazi kada se niti medjusobno zablokiraju i ne mogu se odblokirati.
+
+Dolazi do toga tako sto imamo dve niti N1 i N2 i dva resursa R1 i R2.
+
+N1 -> treba joj resurs R2 kako bi se zavrsila ,a ona drzi resurs R1
+
+N2 -> treba joj resurs R1 kako bi se zavrsila,a ona drzi resurs R2
+
+tako da ni jedna od njih nece dobiti ove resurse i cekace vecno.
+
+Ovo se desava u Multi-Threaded aplikacijama
+
+4 uslova koja se moraju isputniti da se deadlock desi:
+
+1. Mutual Exclusion -> To je ona  osobina da drze resurse medjusobno
+2. Hold And Wait -> To je da cekaju
+3. No Preemption -> ne mogu da se resursi uzmu na silu vec se cekaju
+4. Circular wait
+
+Nacini da resimo ovo:
+
+1. Deadlock Avoidance -> pazliva alokacija resursa i scheduling .
+2. Resource Ordering ->
+3. Resource Allocation Policies
+4. Avoiding Hold And Wait
+5. Deadlock Detection And Recovery -> ovo mogucava da se deadlock desi ,i kada se desi onda se proces ubije ili se resurs otpusti

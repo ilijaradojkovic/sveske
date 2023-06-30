@@ -1,5 +1,63 @@
 # Arhitecture
 
+## Layered Arhitecture
+
+Ovo je jedan od najpoznatijih i najupotrebljiviih arhitekturnih tipova,od njega su kasnije razvijeni ostale arhitekture.Sustina ove arhitekture je da se slicne funkcionalnosti grupisu u novie.
+
+
+
+![image-20230621142156689](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230621142156689.png)
+
+## Client-Server Pattern
+
+Sustina je da imamo 2 komponente
+
+- Server
+
+- Client
+
+  CLient je komponenta koja salje zahteve na server koji sadrzi neke usluge,informacije...
+
+## Master-Slave Pattern
+
+Glavne komponente:
+
+- Master
+- Slave
+
+Ovo je u multi-threaded applications gde imamo vise instanci istog problema koji moraju da se rese.Master je glavna komponenta koja inicijalizuje i pokrece Slaves da izvrsavaju u paralelu,kada slave zavrsi master uzima rezultat
+
+## Pipe & Filter Pattern
+
+Glavne komponente:
+
+- Filter
+- Pipe
+
+Ovde imamo vise FIlter klasa koji menjaju(transform) podatke kako ih dobijaju
+
+Pipes sluze kao povezivaci(connectos) na sam stream of data koji se transformisu pomocu filtera
+
+![image-20230621142944480](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230621142944480.png)
+
+## Peer-To-Peer Pattern
+
+Ovde se jedna instanca sistema ponasa kao server i klijent
+
+![image-20230621143054662](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230621143054662.png)
+
+## Model-View-ViewModel
+
+Glavne komponente:
+
+- View-> izgled ,sama stranica
+- ViewModel -> kontroler
+- Model -> entity
+
+![image-20230621143251017](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230621143251017.png)
+
+
+
 ## Clean Arhitecture
 
 Ovo je `separation of concerns` tako sto se podeli aplikacija u razlicite delove(different layers)

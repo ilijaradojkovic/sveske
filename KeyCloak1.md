@@ -1,6 +1,6 @@
 # KeyCloak
 
-Ovo je autorizacioni server koji mi lokalno instaliramo.Ja sam ga preko Docker-a instalirao i  pokrenuo.
+Ovo je autorizacioni server koji mi lokalno instaliramo.Ja sam ga preko Docker-a instalirao i pokrenuo.
 
 ```
   keycloak:
@@ -41,6 +41,13 @@ Samo se login kao admin i ono ce nas odvesti u KeyCloak config konzolu.
 ![image-20230531103201845](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230531103201845.png)
 
 Ovde mozemo da vidimo da imamo ovo `Master` to cemo da promeni i kreiramo neki nas deo,ja sam napravio test i podesimo
+
+Fora je da ce ako idemo preko dokera na keycloak u locakhostu izbaci ce nam `master` realm login stranu,a mi imamo novi realm pa hocemo da se login preko njega jer su nam tu useri
+
+isao sam prvo na 
+http://localhost:8080/realms/nomadesk/account 
+pa sam na sign in pa mi izbacilo ovaj link
+http://localhost:8080/realms/nomadesk/protocol/openid-connect/auth?client_id=account-console&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Frealms%2Fnomadesk%2Faccount%2F%23%2F&state=198f4552-0b55-4d0a-987d-0ac9bcb88a61&response_mode=fragment&response_type=code&scope=openid&nonce=48c8620f-6f24-4942-84fb-8080e2183dff&code_challenge=pQjFfgd2PyrHQ5rERHaEXLEvnCdeSI4aMf29S3yNKRU&code_challenge_method=S256
 
 Dodacemo novog client-a
 
@@ -234,7 +241,9 @@ Namestimo realm -> pa idemo na Client -> i tu mozemo da podesimo
 
 Moramo da stikliramo `Standard Flow`.
 
-Koristimo callback uri: http://localhost:8080/authorization-code/callback
+
+
+Koristimo callback uri: http://localhost:8080/authorization-code/callback i takodje da namestimo polje u nasem klijentu za vlid redirect url
 
 za ostale info uzimamo iz onih well known endoints.
 
@@ -271,3 +280,73 @@ Port: 1025
 ![image-20230609122039765](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230609122039765.png)
 
 za Mailhog je ovo dovoljno,ako podesavamo google moramo da ukljucimo SSL i TLS i Authentication
+
+## 2FA
+
+Ovo mozemo da omogucimo i keycloak ima default procese koji radie dveofaktorsku
+
+Authentication->Requeired Actions -> Configure OTP
+
+ovo ce da konfigurese da imamo 2fa ali samo preko nekih provajdera,ako hocemo email base ili sms based moramo da ubacimo neke jar fajlove koji ce to raditi,tj moramo sami da napravimo taj rad i da ubacimo u keyloak
+
+https://github.com/mesutpiskin/keycloak-2fa-email-authenticator -> Email Authentication
+
+https://github.com/dasniko/keycloak-2fa-sms-authenticator -> SMS Authentication,moramo da podesimo da postoji polje u useru `mobile_number` mozemo to rucno ali je bolje da imamo custom akciju 
+
+ljudi su vec ovo napravili pa mozemo da skinemo,ali i mi mozemo da napravimo nase pomocu samo 2 klase koje ce svaka da impl po jedan interface
+
+1. <span style="color:tomato">Authenticator</span>
+2. <span style="color:tomato">AuthenticatorFactory</span>
+
+i tu podesimo sami ako hocemo
+
+
+
+Kada napravimo app pomocu ovoga ili skinemo vec postojace samo treba da build i install u mavenu i onda dobijemo .jar file
+
+moramo da kopiramo taj jar fajl  u specijalan folder u keycloaku `/opt/keycloak/providers/`
+
+```
+docker cp buildovanJarFile ContainerId:/opt/keycloak/providers/
+```
+
+Kada dodamo ovaj fajl moramo da ga ubacimo da se koristi pri `autentikaciji`.To mozemo da odradimo tako sto odemo u Authentication tab i kreiramo kopiju browser flow-a
+
+![image-20230622100757853](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230622100757853.png)
+
+i sada taj nas flow mozemo da kostumizujemo i da tu ubacimo dodati jar file da izvrsava posao
+
+## Custom Action
+
+Moramo da implementiramo kao gore neke klase:
+
+- <span style="color:tomato">RequiredActionProvider</span>
+- <span style="color:tomato">RequiredActionFactory</span>
+
+i ovo ubacimo u istu potanju na keycloaku on ce sam da registruje
+
+## Recovery Code
+
+Ovo je ako se npr telefon izgubi pa ne moze 2fa da uradi,pa za to postoji na keycloaku recovery code
+
+Postoje neke akcije u Keycloaku koje nisu enabled by default,pa moramo mi sami da ih enable.To sam uradio tako sto sam dodao cmd komandu prilikom podizanja keycloak servera u compose file
+
+```
+  command: start-dev --features="preview"
+```
+
+https://www.keycloak.org/server/features#_enabling_features vise o tome
+
+i sada imamo u Authentication/Required Actions nove akcije 
+
+Samo ga enable
+
+FOra je sto moramo da ga dodamo u login browser flow da bi radilo pri loginu.Ako stavimo da je sve alternative onda  ce se prikazati na jedoj formi
+
+![image-20230622133022612](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230622133022612.png)
+
+## User Storage
+
+Gde cemo cuvati usere,ovako se cuvaju interno.Ovo mozemo promeniti da se cuvaju u nasoj bazi
+
+https://github.com/dasniko/keycloak-extensions-demo/tree/main skinemo ovo i build peanuts-userprovider i to oept iskopiramo u /opt/keycloak/providers

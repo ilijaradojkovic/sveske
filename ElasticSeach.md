@@ -153,7 +153,9 @@ docker -exec -it idContainer bash
 Kreiraj index
 
 ```curl
-curl -XGET http://localhost:9200/IMEINDEXA -
+curl -XPOST http://localhost:9200/IMEINDEXA
+
+POST /ImeIndeksa
 ```
 
 with custom shard and replicas 
@@ -167,6 +169,12 @@ curl -XPUT -H "Content-Type: application/json" http://localhost:9200/userindex2?
     }
   }
 }'
+
+
+POST /ImeIndeksa
+    "settings":{
+        ....
+    }
 ```
 
 Ovo pravi prazan index,on nema strukturu uopste,nema schemu
@@ -217,7 +225,7 @@ Da bi imao shcemu moramo da dodamo mappings
 
 - completion -> sugestije kao
 
-- date (kako json nema Date kao datatype nema ni elasticseach,ovo je string,internally dates se pretvaraju u UTC)
+- date (kako json nema Date kao datatype nema ni elasticseach,ovo je string,internally dates se pretvaraju u UTC),kada sam dodao date onda sam morao lepo da filtriram index u kibni jer nije hteo lepo da radi jer nije u date range tog datuma
 
   ```
   "mappings": {
@@ -492,6 +500,8 @@ Da bi imao shcemu moramo da dodamo mappings
   - ip_range
 
   - text
+  
+  - arrays -> U es nema kao konkretan tip podataka da je array,vec svako polje moze da ima vise vrednosti,ali one moraju biti istog tipa
 
 
 
@@ -1413,6 +1423,7 @@ Ovde imamo izbora da radimo preko:
 
 1. ElasticsearchRestTemplate
 2. Repositories
+3. ElasticSearchClient(Moramo da dodatno uradimo config)
 
 
 
@@ -1443,5 +1454,86 @@ Ovde imamo izbora da radimo preko:
 
    
 
-3. 
+3. <span style="color:red">@Setting()</span>
 
+   ```
+   settingsPath =string -> namestamo 
+   useServerConfiguration=bool
+   shards =int-> (default je 1)
+   replicas=int ->(default je 1)
+   refreshInterval =string(default je 1s)
+   indexStoreType =string(default je fs)
+   sortFields=String[](default je {})
+   sortOrders=SortOrder[] (default je {})
+   sortModes=SortMode[] (default je {})
+   sortMissingValues =SortMissing[](default je {})
+   ```
+
+   
+
+## Imam vec neki sample data,i kako sada to spring da parsuje?
+
+Ako imamo podatke samo napravimo odredjenu klasu i bitno je da je oznacimo sa @Document(imeindeksa u es) i da unesemo koja polja hocemo da ima ,on ce sam da ih mapira.Bitno je da poklopimo ime i tip
+
+## Capacity Managment
+
+- Multiple indices as a scaling strategy b
+
+- policy
+
+  Mozemo da definisemo poliku lifecycle index-a
+
+   HOT->WARM->COLD->FROZEN->DELETE
+
+  ```
+  PUT _ilm/policy/datastream_policy
+  {
+  	"policy":{
+  		"phases":{
+  			"hot":{
+  				"actions":{
+  					"rollover":{
+  						"max_size":"50GB",
+  						"max_age":"30d"
+  					}
+  				}
+  			},
+  			"delete":{
+  				"min_age":"90d",
+  				"actions":{
+  					"delete":{}
+  				}
+  			}
+  		}
+  	}
+  }
+  ```
+
+  
+
+sada moramo da povezemo ovaj policy za index template
+
+```
+PUT _template/datastream_template
+{
+	"index_patterns":["datastream-*"],
+	"settings":{
+		"number_of_shards":1,
+		"number_of_replicas":1,
+		"index.lifecycle.name":"datastream_policy",
+		"index.lifecycle.rollover_alias":"datastream"
+	}
+}
+```
+
+## Arhitektura 
+
+U smislu arhitekture imacemo poseban mikroservis koji ce da cuva duplikate podataka u es,cuvacemo znaci u bazi gde su nam stvarni podaci,i u es za pretragu
+
+Ako imamo update,delete,insert to mormoa da uradimo duplo
+
+Ako imamo vec podatke  pa hocemo da uvedemo es moramo da pokrenemo skriptu koja ce sve da ubaci
+
+## Docs
+
+https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html

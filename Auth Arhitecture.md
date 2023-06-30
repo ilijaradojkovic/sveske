@@ -4,13 +4,11 @@
 
 ## Monolith approach
 
-Vidimo da monolith app radi jednostavan *Basic Authentication*  gde ce dobiti cookie preko koga ce moci da pristupi
+Vidimo da monolith app radi jednostavan *Basic Authentication*  gde ce dobiti cookie\(Session) preko koga ce moci da pristupi
 
 One key part of the security architecture is the session, which stores the principal’s ID and roles. The FTGO application is a traditional Java EE application, so the session is an HttpSession in-memory session. A session is identified by a session token, which the client includes in each request. It’s usually an opaque token such as a cryptographically strong random number. The FTGO application’s session token is an HTTP cookie called JSESSIONID
 
-The other key part of the security implementation is the security context, which stores information about the user making the current request. The Spring Security
-
-framework uses the standard Java EE approach of storing the security context in a static, thread-local variable, which is readily accessible to any code that’s invoked to handle the request. A request handler can call SecurityContextHolder.getContext() .getAuthentication() to obtain information about the current user, such as their identity and roles
+The other key part of the security implementation is the security context, which stores information about the user making the current request. The Spring Security framework uses the standard Java EE approach of storing the security context in a static, thread-local variable, which is readily accessible to any code that’s invoked to handle the request. A request handler can call SecurityContextHolder.getContext() .getAuthentication() to obtain information about the current user, such as their identity and roles
 
 ## Microservice
 
@@ -23,7 +21,7 @@ framework uses the standard Java EE approach of storing the security context in 
 
 
 
- There are a couple of different ways to handle authentication. One option is for the individual services to authenticate the user. The problem with this approach is that it permits unauthenticated requests to enter the internal network. It relies on every development team correctly implementing security in all of their services. As a result, there’s a significant risk of an application containing security vulnerabilities.
+ There are a couple of different ways to handle authentication. One option is for the **individual services to authenticate the user**. The problem with this approach is that it permits unauthenticated requests to enter the internal network. It relies on every development team correctly implementing security in all of their services. As a result, there’s a significant risk of an application containing security vulnerabilities.
 
 Another problem with implementing authentication in the services is that different clients authenticate in different ways. Pure API clients supply credentials with each request using, for example, basic authentication. Other clients might first log in and then supply a session token with each request. We want to avoid requiring services to handle a diverse set of authentication mechanisms.
 
@@ -96,3 +94,28 @@ It is safer to keep the signing key (private key) in the Auth Microservice and o
 
 
 ![image-20230213155739135](C:\Program Files\Typora\resources\Docs\img\image-20230213155739135.png)
+
+Ovo postizemo tako sto na gateway-u stavimo oauth2 client i oauth2 resource server kao i da disable session.
+
+## Spring Gateway as OAuth 2.0 Resource Server
+
+Ako ga stavimo da bude Resource server on ce samo da proverava validnost tokena i da ga forwarduje dalje na mikroservise
+
+Kada imamo ovo mi moramo nekako da uzmemo token  sa keycloak-a.Najlakse je da se uradi `password grant flow`na keycloak gde cemo mi da posaljemo username i password i dobiti tokene
+
+##  Spring Gateway as OAuth 2.0 Client
+
+To znaci da ce on izvrsavati zahtev za OAuth2 token,a ne mi(front) to znaci da mozemo da koristimo drugi grant type koji je bezbedniji
+
+Ovde cemo imati samo sesiju koja se uspostavlja izmedju gateway-a i user-a.Ovo mora ovako ,gateway ce da storuje nekako token sa id sesije .Nikada ne saljemo id token nazad jer je losa praksa vec imamo tu sesiju izmejdu user-a i gateway-a.Pa ako zapocne 3 requesta i pomocu prvgo se login gateay dobija od auth servera tokene i cuva ih interno,i uspostavlja sesiju sa user-om,tako da kada on open nesto hoce on ce da proveri validnost tokena.
+
+1. User Login: The user logs in using the authentication server, providing their credentials.
+2. Token Generation: Upon successful authentication, the authentication server generates an access token and possibly an ID token.
+3. Gateway Session Initialization: The gateway establishes a session with the user, associating the session with the authenticated user's identity. This session can be stored in memory, a distributed cache, or a database.
+4. Token Storage: The gateway retains the received token (e.g., access token or ID token) within the session or in a separate storage mechanism. This allows the gateway to validate the token and extract user information for subsequent requests.
+5. Subsequent Requests: When the user makes subsequent requests to the gateway, the gateway checks for the presence of the token associated with the user's session.
+6. Token Validation: The gateway validates the token to ensure its authenticity and integrity. It verifies the token's signature, expiration, and other relevant claims to ensure its validity.
+7. User Identification and Authorization: After successful token validation, the gateway uses the token to identify the user associated with the session. It can extract user information from the token and perform any necessary authorization checks based on the user's identity and associated permissions.
+8. Request Forwarding: If the user is authorized, the gateway forwards the request to the appropriate downstream service on behalf of the user.
+
+Znaci sada necemo moci da bas lepo testiramo u postamnu jer ce biti sesija,to resavamo tako sto na postmanu radimo OAuth Authentication Flow direktno na auth server,ono ubacimo client id ,client secret...

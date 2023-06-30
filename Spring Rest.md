@@ -96,3 +96,101 @@ Odogovor sa servera  da li je uispesno nesto izvrseno.Ovo je broj od 3 cifre koj
 ### Spring Rest
 
 ![image-20230130221125087](C:\Users\radoj\AppData\Roaming\Typora\typora-user-images\image-20230130221125087.png)
+
+## Spring
+
+Za svaku metodu imamo odgovarajucu anotaciju
+
+```
+GET -> @GetMapping
+POST -> @PostMapping
+.
+.
+.
+
+```
+
+@GetMapping(
+
+name ->
+
+)
+
+#### Static Path
+
+@GetMapping("/entities") 
+
+#### Path Variable
+
+@GetMapping("/entities/{id}") 
+
+@GetMapping("/entities/{id}/test") 
+
+{id} je placeholder za vrednost koja je dinamicka,i to moramo dodati preko anotacije
+
+<span style="color:tomato">@PathVariable</span>
+
+```
+public void doSmeth(@PathVariable(value,name,required) tip naziv){
+
+}
+```
+
+#### Query Path
+
+@GetMapping("/entities")
+
+put se pise ovako,ali mi moramo da dodamo te query parametre u funkciju koja je oznacena sa ovim
+
+<span style="color:tomato">@RequestParam(value,name,required,defaultValue)</span>
+
+```
+public ovid doSmeth(@RequestParam(value,name,requered,defaultValue)){
+
+}
+```
+
+
+
+MI cemo imati klasu koja je rest,i ta klasa nam je kontroler.Kontroler sadrzi endpointe,tj ta mapiranja i pored ovih @GET... mozemo u parametre da **inject** neke stvari
+
+```
+@RestController
+class Rest{
+
+	@GetMapping(...)
+    public void doSmeth(...){
+
+    }
+}
+```
+
+<span style="color:tomato">@RequestHeader(name)</span>
+
+```
+	@GetMapping(...)
+    public void doSmeth(@RequestHeader("name") String variableName){
+
+    }
+```
+
+<span style="color:tomato">@DateTimeFormat (style,iso,pattern,fallbackPatterns)</span>
+
+style-> default je "SS"
+
+iso -> DateTimeFormat.ISO.NONE default
+
+pattern -> to sami definisemo
+
+fallbackPatterns -> ovo je ako primarni patern gore ne uspe
+
+```
+@GetMapping(...)
+    public void doSmeth(@DateTimeFormat("dd-mm-yyyy") LocalDate variableName){
+
+    }
+```
+
+<span style="color:tomato">@RequestPart(value,name,requered,default)</span>
+
+Ovo je kada radimo sa multipart/form-data,tj sa fajlovima

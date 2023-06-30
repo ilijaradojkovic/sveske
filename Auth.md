@@ -403,7 +403,7 @@ DaoAuthenticationProvider getProvider(){
 
 
 
-### Configure Route Secutiry
+### Configure Route Secutiry(Sync)
 
 Ovo radi metoda
 
@@ -446,6 +446,23 @@ http.authorizeRequests().antMatchers("/properties/add").permitAll() -> bilo ko c
 http.authorizeRequests().antMatchers("/properties/add").fullyAuthenticated() -> samo auth users ce moci
 http.authorizeRequests().antMatchers("/properties/add").hasRole("Admin") -> samo ce admin moci da priostupi ovoj ruti
 ```
+
+### Configure Route Secutiry(Async)
+
+```
+ public SecurityWebFilterChain filterChain(ServerHttpSecurity http) {
+ 	...
+ }
+```
+
+Fora je kod namestanje sesije drugacije je 
+
+```
+http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
+
+```
+
+
 
 ### Configure http basic
 

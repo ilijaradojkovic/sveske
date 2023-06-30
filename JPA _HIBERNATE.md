@@ -98,7 +98,7 @@ Ovo je primarni kljuc tabele
 
 )
 
- 
+ GenerationType.AUTO -> Ovo je da mi damo Hibernatu da odluci kako ce
 
 GenerationType.IDENTITY ->Ovo je jednako auto-increment u bazi
 
@@ -712,4 +712,363 @@ public class SmallProject extends Project {
 }
 ```
 
- 
+##  Relationships
+
+### Cascade
+
+Ovo je osobina sta se radi sa objekom koji je nestovan(inner) u nekmo.Npr imamo User i Address, user sadrzi objeat address
+
+onda je on inner ili se kaze da user "poseduje" address.Ova osobina nam omogucava da kada se izvrsi npr insert nad userom da se automatski insert i taj address objekat
+
+
+
+### Fetch 
+
+Ovo radimo preko enuma `FetchType` 
+
+Ova osobina koju dodeljujemo je da li ce se svi podaci izvuci iz baze odmah ili ce se uraditi posle kada nam zatreba.
+
+Npr ovde imamo User i Address,user sadrzi objekat adress i kaze se da on sadrzi address.
+
+Postoje 2 tipa FetchType-a:
+
+1. Eager -> Dovicu mi ceo objekat odmah
+2. Lazy -> Dovuci mi objekat kasnije kada mi zatreba
+
+
+
+### @OneToOne
+
+![image-20230626161725472](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230626161725472.png)
+
+OneToOne ce da mapira jednu klasu za drugu gde imamo **samo** 1 pojavljivanje ove druge
+
+TO znaci da ce user imati samo 1 adresu,ta adresa postoji samo kao jedna i niko drugi ne moze da se poveze na nju niti da ima duplikata,bukvalno samo 1 adresa moze da posotji i da se veze za to user-a.
+
+
+
+```java
+@Entity
+@Table(name = "users")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
+    private Long id;
+
+    //...
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @PrimaryKeyJoinColumn
+    private Address address;
+
+    //... getters and setters
+}
+
+@Entity
+@Table(name = "address")
+public class Address {
+
+    @Id
+    @Column(name = "user_id")
+    private Long id;
+
+    //...
+
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "user_id")
+    private User user;
+   
+    //... getters and setters
+}
+```
+
+<span style="color:#FA5F55">@OneToOne(</span>
+
+cascade -> CascadeType,
+
+fetch -> FetchType,
+
+optional -> boolean,
+
+orphanRemoval -> boolean
+
+<span style="color:#FA5F55">)</span>
+
+### @ManyToOne() i @OneToMany()
+
+Ovo u sustini stvara tu novu tabelu jer sse sadrzi vise vrednosti.Imaecmo klase **A** i **B**(B ce da sadrzi vise objekata tipa A)
+
+ManyToOne -> se stavlja na entity objekat **A** koji ima samo 1 objekat  tipa **B**,  dok ovaj  tip **B** sadrzi vise tih objekata **A **
+
+OneToMany -> se stavlja na entity objekata **B** koji ima vise objekata tipa A.
+
+<span style="color:#FA5F55">@ManyToOne(</span>
+
+cascade, -> CascadeType
+
+fetch, -> FetchType
+
+optional
+
+<span style="color:#FA5F55">)</span>
+
+<span style="color:#FA5F55">@OneToMany(</span>
+
+cascade -> CascadeType
+
+fetch , -> FetchType,
+
+orphanRemoval, -> Boolean
+
+mappedBy -> String
+
+<span style="color:#FA5F55">)</span>
+
+
+
+```java
+@Entity(name = "roles")
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class Role {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @OneToMany
+    private List<User> userList;
+}
+
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Entity(name = "users")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(name = "email",length = 128,nullable = false,unique = true)
+    private String email;
+
+    @Column(name = "enabled")
+    private Boolean enabled;
+
+    @ManyToOne()
+    private  Role role;
+}
+```
+
+Ovde cese napraviti nova tabela  jer role sadrzi vise user-a nova tabela ce biti kreirana.Tako da ce se kreirati tabela User, Roles,i ta nova tabela koja je kao agregacija te dve roles_user_list koja sadrzi samo id role i id user-a.
+
+Kada se kreira ta nova tabela njoj mozemo da upravljamo pomocu anotacije 
+
+### @JoinTable
+
+<span style="color:#FA5F55">@JoinTable(</span>
+
+name ,
+
+catalog,
+
+schema,
+
+joinColumns -> JoinColumn[], -> u tamo klasi sa kojom pravimo vezu id 
+
+inverseJoinColumns -> JoinColumn[], -> u trenutnoj klasi id
+
+foreignKey, -> ForeignKey,
+
+inverseForeignKey,ForeignKey,
+
+indexes-> Index[],
+
+iniquieConstraints -> UniqueConstaint[]
+
+<span style="color:#FA5F55">)</span>
+
+### @JoinColumn
+
+<span style="color:#FA5F55">@JoinTable(</span>
+
+name,
+
+referenceColumnName,
+
+unique,
+
+nullable,
+
+insertable,
+
+updatable,
+
+columnDefinition,
+
+table,
+
+foreignKey-> ForeignKey
+
+<span style="color:#FA5F55">)</span>
+
+```
+@Entity
+@Table(name = "parent")
+public class Parent {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToMany
+    @JoinTable(
+        name = "parent_child",
+        joinColumns = @JoinColumn(name = "parent_id"),
+        inverseJoinColumns = @JoinColumn(name = "child_id")
+    )
+    private List<Child> children;
+
+    // Getter and Setter methods
+}
+
+@Entity
+@Table(name = "child")
+public class Child {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Other properties
+
+    // Getter and Setter methods
+}
+```
+
+### @ManyToMany
+
+Ovo je kada imamo vise-vise vezu
+
+<span style="color:#FA5F55">@ManyToMany(</span>
+
+cascade,
+
+fetch
+
+mappedBy
+
+<span style="color:#FA5F55">)</span>
+
+Uz ovu  anotaciju moramo da stavimo anotaciju @JoinColumn kako bi on znao gde sta da mapira
+
+```java
+@Entity(name = "roles")
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class Role {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(length =40,nullable = false,unique = true)
+    private String name;
+
+    @Column
+    private String description;
+
+    @ManyToMany()
+    private List<User> userList;
+}
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Entity(name = "users")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(name = "email",length = 128,nullable = false,unique = true)
+    private String email;
+
+    @ManyToMany()
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles= new HashSet<>();
+
+}
+```
+
+kako Role.class ima ovo @ManyToMany i User.class ima @ManyToMany ali takodje smo stavili i @JoinTable on ce kreirati 4 tabele
+
+User
+
+Role
+
+@ManyToMany -> default tabela
+
+@JoinTable -> tabela sto smo tu definisali
+
+
+
+Mi hocemo samo 3,ovo default mozemo da izbacimo tako sto ubacimo mappedBy=""
+
+mappedBy stavljamo u onoj klasi gde nemamo @JoinTable i to oznacava ko ima "vlasnistvo",ko je glavni u toj vezi,mappedBy="ime varijable u drugoj klasi koja drzi tu ManyToMany vezu"
+
+```
+@Entity(name = "roles")
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class Role {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(length =40,nullable = false,unique = true)
+    private String name;
+
+    @Column
+    private String description;
+
+    @ManyToMany(mappedBy = "roles")
+    private List<User> userList;
+}
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Entity(name = "users")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(name = "email",length = 128,nullable = false,unique = true)
+    private String email;
+
+    @ManyToMany()
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles= new HashSet<>();
+
+}
+```
+
