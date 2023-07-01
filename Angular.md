@@ -1,5 +1,34 @@
 # Angular
 
+## Dodati Bootstrap
+
+Instaliramo bootstrap u angular projektu preko 
+
+```cmd
+npm install bootstrap jquery --save
+```
+
+sada imamo foldere u node_modules
+
+```js
+node_modules/jquery/dist/jquery.min.js
+node_modules/bootstrap/dist/css/bootstrap.min.css
+node_modules/bootstrap/dist/js/bootstrap.min.js
+```
+
+da bi radio mormao da dodamo,tj da referenciramo ove fajlove u `angular.json`
+
+```js
+"styles": [
+    "styles.css",
+    "./node_modules/bootstrap/dist/css/bootstrap.css"
+  ],
+  "scripts": [
+    "./node_modules/jquery/dist/jquery.min.js",
+    "./node_modules/bootstrap/dist/js/bootstrap.min.js"
+  ],
+```
+
 ## Components
 
 Komponente su u stvari UI deo koji je reusable.
@@ -113,7 +142,7 @@ Ovo je nacin da mi **bind** polja u html-u,i postoje 4 nacina:
    }
    ```
 
-   
+   nisu nam potrebne get i set metode
 
 4. Event binding
 
@@ -159,6 +188,10 @@ Svaku komponentu koju napravimo moramo da stavimo u `modules`,ali ovo se autmats
 
 ## Directives
 
+BIlo koji directive se radi sa [imedirective],
+
+structural directives imaju *  jedini
+
 Operatori u HTML-u.
 
 Mi imamo mogucnost da pisemo neke operatore,funkcije u html-u kao kada smo raidli sa thymeleaf-om
@@ -170,6 +203,15 @@ Mi imamo mogucnost da pisemo neke operatore,funkcije u html-u kao kada smo raidl
 <span style="color:tomato">*ngif=ifLogic</span>
 
 ​	Prikazuje ili sakriva komponente u zavisnosti da li je true ili false
+
+
+
+```html
+<p *ngIf="display; else customtemplate"> cao</p>
+<custom-template #customtemplate>
+    <p> display in else</p>
+</custom-template>
+```
 
 <span style="color:tomato">*ngfor=forlogic</span>
 
@@ -207,11 +249,102 @@ Sluzi nam da dodamo dinamicki klasu
 [ngClass]="{className: searchValue!=''}"
 ```
 
+<span style="color:tomato"><ngContent></span> dinamicki ubacimo kontent HTML
 
+Ako imamo definisanu komponentu
+
+```
+<mycomponent>
+	...
+</mycomponent>
+```
+
+a struktura mycomponent html-a
+
+```html
+<div>
+
+<p></p>
+<div>
+```
+
+e sada ovo sto smo ubacili gore sa ... nece biti prikazano u samoj kompoenenti mycompoenent,jer u tom html nema nista da kao ubaci sta je u ovim ... za to koristimo <ng-content></ng-content>
+
+mi pass content u component selector-u
+
+
+
+### custom
+
+Hocemo da kreiramo custom attribute koji menja boju u zelenu
+
+Napravimo fajl `ime.directive.ts`
+
+```ts
+@Directive({
+	selector: '[setBackground]'
+})
+export class SetBackgroundDirective{
+	
+	constructor(element:ElementRef){
+		element.nativeElement.style.background="#GEW218";
+	}
+}
+```
+
+Ako ovu directive koristimo na bilo koj elem on ce u konstnruktoru da je prosledi,takodje da ovo koristimo moramo da ga ubacimo u module,ovo se automatski radi kada imamo framework.
+
+i sada samo ubacimo ovaj directive u html tag
+
+```html
+<p setBackground>cao</p>
+```
+
+### custom structural directive
+
+`Template<any>` -> sta dodajemo i brisemo
+
+`ViewContainerRef `-> conateiner gdese to nalazi
+
+
+
+```ts
+@Directive({
+	selector: '[appCustomDirectiveIF]'
+})
+export class SetBackgroundDirective{
+	
+	constructor(private template:Template<any>,private viewContainer:ViewContainerRef){}
+    
+    @Input() set displayView(condition:boolean){
+        if(condition){
+            this.viewContainer.createEmbeddedView(this.template);
+        }else{
+            this.viewContainer.clear();
+        }
+    }
+}
+```
+
+Mormao da mu stavimo ime directive i onda input variable,jer ne bi znao gde da gleda ,pre kada smo pravili one attribute custom directive nismo morali da stavljamo nista vec samo ime ,ali ovde ne ovde ide druacije
+
+```html
+<div *appCustomDirectiveIF "displayView='nekiboolean'">
+```
+
+znaci ako je ovaj boolean tacan display ce se ,a  u suprotnom nece
 
 ## Angular Lifecycle
 
 Angular prolazi kroz razne faze tokom rada,mi te interfejse moramo u compoennnt da bi overide taj lifecycle i da ga koristimo.
+
+Angular lifecycle prvo render root komponentu pa onda tek decu.
+
+### Change detection
+
+Ovo je mehanizam koji angular ima,i sinhronizuje komponente.
+
+npr imamo <div>Hello {{name}}</div> ,angular ce da update DOM svaki put kada se name varijabla promeni
 
 <span style="color:tomato">onInit</span>
 
@@ -331,15 +464,213 @@ tako sto u parenent html-u ,jer ui njemu imamo html tag za child,samo u taj tag 
 
 ### @Output
 
-Ako hocemo da child salje parentu ovo koristimo.
+Ako hocemo da child salje parentu ovo koristimo.Fora je samo sto kada hocemo da saljemo varijablu iz child-a u parent mi moramo da koristimo evente
 
 Imacemo varijablu u child-u 
 
-```
+```ts
 extends class myChild{
+	myvariable:string
 
-myvariable:string
+    @Output
+    filteredButtonChanged :EventEmitter<string>=new EventEmitter<string>();
+    onRadioButtonSelectedCHanged(){
+        this.filteredButtonChanged.emit(myvariable);
+    }
 
+
+}
+```
+
+i sada uradimo bind za evente na parentu da slusa ovu promenu
+
+```ts
+export class MyParent{
+	myVariable:string='';
+	
+	onFilterButtonChanged( data:string){
+		this.myVariable=data;
+	}
+	
+}
+```
+
+i sada u partentu u html moramo da bind za taj event
+
+```html
+<child (filteredButtonChanged)="onFilterButtonChanged($event)" ...></child>
+```
+
+jer se salju podaci iz childa u parent kaoevent ,angular ima build in $event to ej sta salje child
+
+## Custom events
+
+Samo napravimo varijablu koja je tipa <span style="color:tomato">EventEmmiter<T></span>
+
+```ts
+extends class myChild{
+	myvariable:string
+
+    @Output
+    filteredButtonChanged :EventEmitter<string>=new EventEmitter<string>();
+    onRadioButtonSelectedCHanged(){
+        this.filteredButtonChanged.emit(myvariable);
+    }
+
+
+}
+```
+
+Emit se preko funkcije emit(value)
+
+## Template Reference Variable
+
+Ovo je referenca DOM elementa,da bi neku varijablu napravili koristimo <span style="color:tomato">#IMEVARIJABLE</span>
+
+Kada neki DOM element ima ovo mi mozemo u html kodu da ga referenciramo
+
+```
+<input type="text" #myVarialbe> -> sada mozemo myVariable da koristimo svuda u DOM-u ,i to je ceo taj 									DOM element
+<p>{{myVariable.value}}</p>
+
+<button (click) ="sayHello(myVariable)">Say Hello</button> -> kada se desi klik pozivamo ovu metodu i prosledjuemo referencu na input
+.ts
+sayHello(inputEle:HTMLInputElement){
+
+}
+```
+
+## Dekoratori
+
+#### @ViewChild
+
+ovo su anoracije,gore smo koristili metodu da bi prosledili DOM element,ali sta ako hocemo da pristupimo DOM elementu pre nego sto se desi taj event?Koristimo <span style="color:tomato">@ViewChild("templateReferenceVariable")</span> 
+
+Stavimo ovo na neku varijablu u ts fajlu i on ce da referencira DOM element,tip je <span style="color:tomato">ElementRef</span>
+
+```
+<input #myInput>
+```
+
+.ts
+
+```ts
+exdends class AppComponent{
+	@ViewChild("myInput") myDOMElement:ElementRef;
+}
+```
+
+Fora je samo da u @ViewChild(ovde tavimo template reference variable)
+
+da bi pristupili tom elementu u kodu idemo .nativeElement
+
+#### @ContentChild
+
+Hocemo da pristupimo ovom <p> u child komponenti koja je ngcontent
+
+![image-20230630105133384](C:\Users\Ilija\AppData\Roaming\Typora\typora-user-images\image-20230630105133384.png)
+
+Ako hocemo da pristupimo komponenti koja ima ono inner tj one ngContent stvari,tu ne mozemo da radimo viewChild.
+
+```html
+<app-demo>
+	<p #myVarialbe>cao</p>
+</app-demo>
+```
+
+e sada ne mozem oda pristupimo ovome p preko ViewChild jer je unutrasnji tag za app-demo.
+
+```
+@ContentChild('myVariable') ime:ElementRef
+```
+
+#### @HostListener
+
+Slusa event na host element,koristimo ga u kombinaciji sa `directive`
+
+Definisemo ga na funkciji ,i kazemo za koji event.Ta funkcija ce se izvrsiti ako se taj event desi
+
+```ts
+@Directive({
+    selector: '[appHover]'
+})
+export class Test{
+	constructor(private element:ELementRef,private renderer:Rederer2){
+		
+	}
+	
+@HostListener('mouseenter') onMouseOver(){
+		this.renderer.setStyle(this.element.nativeElement,'margin','30px 30px');
+		this.renderer.setStyle(this.element.nativeElement,'padding','5px 5px');
+         this.renderer.setStyle(this.element.nativeElement,'transition','0.5s');
+    }
+}
+```
+
+Mi smo ovde hardkodovali vrednosti ,mi hocemo da komponenta kada stavi directive da ona ubaci te vrednosti,da se dinamcki odredjuju
+
+```ts
+@Directive({
+    selector: '[appHover]'
+})
+export class Test{
+	constructor(private element:ELementRef,private renderer:Rederer2){
+		
+	}
+@Input() defaultColor:string='transparent';
+	
+	
+@HostListener('mouseenter') onMouseOver(){
+		this.renderer.setStyle(this.element.nativeElement,'backgroundColor',defaultColor);
+    }
+}
+```
+
+Moramo da stavimo input da bi primio vrednost
+
+```html
+<p appHover [defaultColor]="'#GEW214'">
+</p>
+```
+
+
+
+#### @HostBinding
+
+na host element,koristimo ga u kombinaciji sa `directive`
+
+Mi kazemo za sta ce da se bind vrednost varijable,ovde se ona bind za style.backgoundColor.Sto ide style,pa jer se radi o ElementRef-u,mi ovo samo stavimo uHTML element
+
+```ts
+@Directive({
+    selector: '[appBetterHighlight]'
+})
+export class Test{
+	constructor(private element:ELementRef,private renderer:Rederer2){
+		
+	}
+	
+@HostBinding('style.backgroundColor') backgounrd:string='transparent';
+}
+```
+
+```
+<p [appBetterHighlight]>cao</p>
+```
+
+
+
+## Renderer2
+
+Ovo koristimo da manipulisemo DOM elementima u kodu,ne u samom html-u
+
+MI Rendere2 mozemo da ubacimo u konstruktor
+
+```ts
+export class Test{
+	constructor(element:ELementRef,renderer:Rederer2){
+		this.renderer.nesto
+	}
 }
 ```
 
